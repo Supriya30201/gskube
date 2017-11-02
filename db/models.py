@@ -1,8 +1,8 @@
 from django.db import models
-from datetime import datetime
+from django.utils import timezone
 
 
-class ConfigMaster(models):
+class ConfigMaster(models.Model):
     """
         This model can be used to store any type of key-value pair data.
         Current plan is to store - Mail, AD, Open VPN etc configuration.
@@ -11,7 +11,7 @@ class ConfigMaster(models):
     value = models.CharField(max_length=255)
 
 
-class Hypervisor(models):
+class Hypervisor(models.Model):
     """
         Hypervisor model will store the details of any hypervisor.
         We have specifically taken type column to decide the type of hypervisor (openstack, kvm etc.)
@@ -22,16 +22,16 @@ class Hypervisor(models):
     protocol = models.CharField(max_length=50)
 
 
-class Project(models):
+class Project(models.Model):
     """
         Project model will store the details of any project belongs to any hypervisor.
     """
     hypervisor = models.ForeignKey(Hypervisor, on_delete=models.DO_NOTHING, null=True)
-    id = models.CharField(max_length=255)
+    project_id = models.CharField(max_length=255)
     name = models.CharField(max_length=255)
 
 
-class User(models):
+class User(models.Model):
     """
         User model will store the details of each user who has access to SOL.
         if user gets deleted, we will not delete user from the SOL database.
@@ -45,7 +45,7 @@ class User(models):
     deleted = models.BooleanField()
 
 
-class UserCredential(models):
+class UserCredential(models.Model):
     """
         UserCredential model will be used to store any user's credentials of a hypervisor.
     """
@@ -56,7 +56,7 @@ class UserCredential(models):
     password = models.CharField(max_length=255)
 
 
-class Instance(models):
+class Instance(models.Model):
     """
         Instance model will store details of each instance created using SOL.
     """
@@ -73,22 +73,22 @@ class Instance(models):
     requested = models.BooleanField()
 
 
-class HypervisorUser(models):
+class HypervisorUser(models.Model):
     """
         HypervisorUser model will be used to map access details of user.
     """
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
     hypervisor = models.ForeignKey(Hypervisor, on_delete=models.DO_NOTHING, null=True)
-    user_id = models.CharField(max_length=255, blank=True, null=True)
+    hypervisor_user_id = models.CharField(max_length=255, blank=True, null=True)
     has_access = models.BooleanField()
 
 
-class HypervisorReport(models):
+class HypervisorReport(models.Model):
     """
         HypervisorReport model will be used to store hypervisor level data of any hypervisor.
     """
     hypervisor = models.ForeignKey(Hypervisor, on_delete=models.DO_NOTHING, null=True)
-    time = models.DateTimeField(default=datetime.utcnow())
+    time = models.DateTimeField(default=timezone.now())
     name = models.CharField(max_length=250)
     type = models.CharField(max_length=250)
     total_memory = models.FloatField()
@@ -99,12 +99,12 @@ class HypervisorReport(models):
     used_disk = models.FloatField()
 
 
-class ProjectReport(models):
+class ProjectReport(models.Model):
     """
         ProjectReport model will be used to store project level report of any hypervisor.
     """
     project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)
-    time = models.DateTimeField(default=datetime.utcnow())
+    time = models.DateTimeField(default=timezone.now())
     total_hours = models.FloatField()
     total_memory = models.FloatField()
     total_cpu = models.FloatField()
@@ -114,10 +114,11 @@ class ProjectReport(models):
     used_disk = models.FloatField()
 
 
-class UserReport(models):
+class UserReport(models.Model):
     """
         User Report model will be used to store user level report of a hypervisor.
     """
+    time = models.DateTimeField(default=timezone.now())
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
     project_report = models.ForeignKey(ProjectReport, on_delete=models.DO_NOTHING, null=True)
     total_memory = models.FloatField()
@@ -128,11 +129,11 @@ class UserReport(models):
     used_disk = models.FloatField()
 
 
-class VMReport(models):
+class VMReport(models.Model):
     """
         VMReport model will be used to store VM level report of a hypervisor.
     """
-    time = models.DateTimeField(default=datetime.utcnow())
+    time = models.DateTimeField(default=timezone.now())
     instance = models.ForeignKey(Instance, on_delete=models.DO_NOTHING, null=True)
     total_hours = models.FloatField()
     total_memory = models.FloatField()

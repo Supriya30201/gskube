@@ -1,0 +1,542 @@
+<!DOCTYPE html>
+<html lang="en">
+{% load static %}
+
+<head>
+    <title>ServiceOnline</title>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <script src="http://code.jquery.com/jquery-1.9.1.js"></script>
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.2.1/jquery.min.js"></script>
+    <link href="https://fonts.googleapis.com/css?family=Oxygen" rel="stylesheet">
+    <link href="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/css/bootstrap.min.css" rel="stylesheet" integrity="sha384-BVYiiSIFeK1dGmJRAkycuHAHRg32OmUcww7on3RYdg4Va+PmSTsz/K68vbdEjh4u"
+        crossorigin="anonymous">
+
+    <script src="https://maxcdn.bootstrapcdn.com/bootstrap/3.3.7/js/bootstrap.min.js"></script>
+    <script src="{% static 'assets/js/jquery.dataTables.min.js' %}"></script>
+    <script src="{% static 'assets/js/dataTables.bootstrap.min.js' %}"></script>
+    <script src="http://code.jquery.com/ui/1.10.2/jquery-ui.js"></script>
+    <link rel="stylesheet" href="http://ajax.googleapis.com/ajax/libs/jqueryui/1.8.16/themes/base/jquery-ui.css" type="text/css"
+        media="all">
+    <link rel="stylesheet" href="{% static 'assets/css/dashboard.css' %}">
+    <link rel="icon" href="{% static 'assets/img/log.png' %}">
+    <script type="text/javascript" src="https://www.gstatic.com/charts/loader.js"></script>
+    <style>
+        body {
+            background-color: rgba(245, 245, 245, 0.27) !important;
+        }
+
+        * {
+            font-family: 'Oxygen', sans-serif !important;
+        }
+
+        .dropdown-submenu {
+            position: absolute;
+        }
+
+        .dropdown-submenu>.dropdown-menu {
+            top: 0;
+            left: 100%;
+            margin-top: -6px;
+            margin-left: -1px;
+            -webkit-border-radius: 0 6px 6px 6px;
+            -moz-border-radius: 0 6px 6px;
+            border-radius: 0 6px 6px 6px;
+        }
+
+        .dropdown-submenu>a:after {
+            display: block;
+            content: " ";
+            float: right;
+            width: 0;
+            height: 0;
+            border-color: transparent;
+            border-style: solid;
+            border-width: 5px 0 5px 5px;
+            border-left-color: #ccc;
+            margin-top: 5px;
+            margin-right: -10px;
+        }
+
+        .dropdown-submenu:hover>a:after {
+            border-left-color: #222222;
+        }
+
+        .dropdown-submenu.pull-left {
+            float: none;
+        }
+
+        .dropdown-submenu.pull-left>.dropdown-menu {
+            left: -100%;
+            margin-left: 10px;
+            -webkit-border-radius: 6px 0 6px 6px;
+            -moz-border-radius: 6px 0 6px 6px;
+            border-radius: 6px 0 6px 6px;
+        }
+
+        .leftHeader,
+        drowpdown-header {
+            display: inline;
+            float: left;
+            padding: 5px 10px 10px 15px;
+        }
+
+        .title {
+            color: #3c94ec;
+            ;
+            display: inline;
+            font-weight: 700;
+            float: left;
+            padding-left: 343px;
+        }
+
+        html {
+            height: 100%;
+            box-sizing: border-box;
+        }
+
+        body {
+            position: relative;
+            padding-bottom: 6rem;
+            min-height: 100%;
+        }
+
+        .form-controlcss {
+            width: 60% !Important;
+        }
+
+        .bpadding {
+            padding-bottom: 30px !important;
+        }
+
+        .logo {
+            padding-top: 18px;
+        }
+
+        .controllers {
+            padding: 20px;
+            padding-top: 10px;
+            padding-bottom: 10px;
+        }
+
+        .input-group {
+            padding-top: 7px;
+        }
+
+        .selectStyle {
+            padding: 5px;
+        }
+
+        .optionStyle {
+            padding-left: 5px;
+            padding-right: 2px;
+            padding-bottom: 5px;
+            padding-top: 1px;
+        }
+
+        .trp {
+
+            padding: 10px;
+        }
+
+        .glyphicon {
+            font-family: 'Glyphicons Halflings' !important;
+        }
+
+
+        .footer {
+            right: 0;
+            bottom: 0;
+            left: 0;
+            padding: 1rem;
+            background-color: #e0dede;
+            text-align: center;
+            position: fixed;
+        }
+
+        #navbar .options {
+            display: none;
+        }
+
+        .lower-me {
+            margin-top: 50px;
+        }
+        .nav-sidebar > li > a, .navbar-nav > li > a > span {
+            color: white;
+        }
+        .nav > li > a:hover, .nav > li > a:focus, .navbar-nav > li > a:focus {
+                    background-image:none !important;
+         }
+         .nav > li > a:hover {
+                    background-color: #337ab7;
+         }
+         .nav>li>a:focus, .nav>li>a:hover, .navbar-nav > li:hover {
+            text-decoration: none;
+            background-color: #337ab7;
+        }
+
+    </style>
+
+</head>
+<script>
+    function switch_common(url, selected_value) {
+        document.openstack_details.action = url;
+        document.openstack_details.submit();
+    }
+
+    {% if openstack_error %}
+    alert('{{ openstack_error }}');
+    {% endif %}
+    function submitOpenstackLoginForm() {
+
+        var domain = document.openstack_login.domain.value;
+        var username = document.openstack_login.username.value;
+        var password = document.openstack_login.password.value;
+
+        if (!domain) {
+            document.getElementById("msg").innerHTML = "Please Enter valid domain";
+            return false;
+        }
+        if (!username) {
+            document.getElementById("msg").innerHTML = "Please Enter valid User Name";
+            return false;
+        }
+        if (!password) {
+            document.getElementById("msg").innerHTML = "Please Enter Valid Password";
+            return false;
+        }
+
+        $('#c_openstack').val($('#current_openstack').val());
+        document.openstack_login.submit();
+    }
+    function onBodyLoad() {
+        var highlightId = ""
+        $('a').each(function () {
+            if ($(this).parent().is('li')) {
+                if (typeof $(this).attr('href') != 'undefined') {
+                    var isContains = $(this).attr('href').indexOf(location.pathname) > -1;
+                    if (isContains) {
+                        $(this).parent().addClass('active');
+                        if (typeof $(this).parent().parent().attr('id') === "undefined") {
+                            highlightId = $(this).parent().parent().parent().parent().attr('id');
+                            $(this).parent().parent().parent().addClass('active');
+                        } else {
+                            highlightId = $(this).parent().parent().attr('id');
+                        }
+                        if (!$('#' + highlightId).is('ul')) {
+                            console.info('jquery cannot highlight '+ highlightId);
+                            highlightId = "";
+                        }
+                    }
+                }
+            }
+        });
+
+        $('#navigate li').each(function () {
+            if ($(this).attr('sub-menu') == highlightId) {
+                $(this).addClass('active');
+                $('#' + $(this).attr('sub-menu')).show();
+            } else if (typeof $(this).attr('sub-menu') === 'undefined') {
+                if (typeof $('a:first', this).attr('href') != 'undefined') {
+                    var isContains = $('a:first', this).attr('href').indexOf(location.pathname) > -1;
+                    if (isContains) {
+                        $(this).addClass('active');
+                    }
+                }
+            }
+            $(this).on('click', function (e) {
+                $('#navbar .options').hide();
+                $('#' + $(this).attr('sub-menu')).show();
+                $('#navbar ul li ul').css({ 'display': '' });
+            });
+        });
+    }
+
+</script>
+
+<body onload="onBodyLoad();">
+    <!--
+-->
+    <div class="navbar-fixed-top" style="background-color: white;height: 50px;"><img style="padding:10px" src="/static/assets/img/logoo.jpg"></div>
+    <nav class="navbar navbar-inverse navbar-fixed-top lower-me">
+        <div class="container-fluid">
+            <div class="navbar-header" style="margin-right: 123px;">
+                <button type="button" class="navbar-toggle collapsed" data-toggle="collapse" data-target="#navbar" aria-expanded="false"
+                    aria-controls="navbar">
+            <span class="sr-only">Toggle navigation</span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </button>
+                <a class="navbar-brand" href="#">ServiceOnline</a>
+            </div>
+            <div id="navbar" class="navbar-collapse collapse">
+
+                <ul class="nav navbar-nav navbar-right">
+
+                    <li>
+                        {% if not request.session.django_admin %}
+                        <form name="openstack_details" class="controllers" method="post">
+                            {% csrf_token %}
+                            <!-- <div class="input-group">
+-->
+                            <select class="selectStyle" name="current_openstack" id="current_openstack" onChange="">
+                    <option class="optionStyle" value="--select--"> Openstack</option>
+
+                    {% for os in request.session.osList %}
+                    <option class="optionStyle" value="{{ os }}"
+                            {% if os == request.session.selected_openstack %}
+                            selected
+                            {% endif %}
+                    >{{ os }}
+                    </option>
+                    {% endfor %}
+                </select> &nbsp;
+
+                            <select class="selectStyle" id="openstack_project" name="openstack_project" onChange="switch_common('', this.value)">
+                    <option class="optionStyle" value="--select--"> Project</option>
+                    {% for project in request.session.projectList %}
+                    <option class="optionStyle" value="{{ project }}"
+                            {% if project == request.session.selected_project %}
+                            selected
+                            {% endif %}
+                    >{{ project }}
+                    </option>
+                    {% endfor %}
+                </select>
+                        </form>
+                        {% endif %}
+                    </li>
+                    <li>
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <span
+                            class="glyphicon glyphicon-user"></span>
+                        {% if request.session.user_fname %}
+                        {{request.session.user_fname}}
+                        {% else %}
+                        {{request.session.user}}
+                        {% endif %}<b class="caret"></b></a>
+                        <ul class="dropdown-menu">
+
+                            {% csrf_token %} {% if request.session.is_admin %}
+                            <li>
+                                <a href=""><span class="glyphicon glyphicon-cog"></span> Server
+                                Requests</a>
+                            </li>
+                            {% endif %}
+                            <li><a href=""><span class="glyphicon glyphicon-paste"></span> Logout</a></li>
+
+                        </ul>
+                    </li>
+
+                </ul>
+
+                <ul class="nav navbar-nav navbar-left options" id="options_identity">
+                    {% if request.session.is_admin and not request.session.django_admin %}
+                    <li>
+                        <a href="" class="" >Projects </a>
+                    </li>
+                    {% endif %} {% if request.session.django_admin %}
+                    <li>
+                        <a href="" class="">
+                                <span class="left-space">Users</span>
+                            </a>
+                    </li>
+                    {% endif %}
+                    <!--
+						<li>
+                            <a href="#" class="">
+                                <span class="left-space">Groups</span>
+                            </a>
+                        </li>
+                        <li>
+                            <a href="#" class="">
+                                <span class="left-space">Roles</span>
+                            </a>
+                        </li>
+                        -->
+
+                </ul>
+                <ul class="nav navbar-nav navbar-left options" id="options_settings">
+                    {% if not request.session.django_admin %}
+                    <li>
+                        <a href="" class="">
+                                <span class="left-space">Openstack Preferences</span>
+                            </a>
+                    </li>
+                    {% endif %} {% if request.session.django_admin %}
+                    <li>
+                        <a href="" class="">
+                                <span class="left-space">Openstack Management</span>
+                            </a>
+                    </li>
+                    {% endif %} {% if request.session.selected_project and not request.session.django_admin %}
+                    <li>
+                        <a href="" class="">
+                                <span class="left-space">Manage Certificate</span>
+                            </a>
+                    </li>
+                    {% endif %}
+                    {% if request.session.django_admin %}
+                    <li>
+                        <a href="" class="">
+                                <span class="left-space">Active Directory</span>
+                            </a>
+                    </li>
+
+                    <li>
+                        <a href="" class="">
+                                <span class="left-space">OpenVpn Configuration</span>
+                            </a>
+                    </li>
+                    <li>
+                        <a href="/django_admin/admin" class="" target="_blank">
+                                <span class="left-space">Admin Panel</span>
+                            </a>
+                    </li>
+                    {% endif %}
+
+                    <li>
+                        <a href="" class="">
+                            <span class="left-space">Change Password</span>
+                        </a>
+                    </li>
+                    {% if request.session.django_admin %}
+                    <li>
+                        <a href="" class="">
+                                <span class="left-space">SMTP configuration</span>
+                            </a>
+                    </li>
+                    {% endif %}
+                </ul>
+                <ul class="nav navbar-nav navbar-left options" id="options_project">
+
+                    <li>
+                        <a href="" class="">
+                                        <span class="left-space">Overview</span>
+                                    </a>
+                    </li>
+                    <li>
+                        <a href="" class="">
+                                        <span class="left-space">Instances</span>
+                                    </a>
+                    </li>
+                    <li>
+                        <a href="" class="">
+                                        <span class="left-space">Images</span>
+                                    </a>
+                    </li>
+                    <!--<li>
+                        <a href="" class="">
+                                        <span class="left-space">Volumes</span>
+                                    </a>
+                    </li>-->
+
+                </ul>
+                <ul class="nav navbar-nav navbar-left options" id="reporting_project">
+
+                    <li>
+                        <a href="" class="">
+                                        <span class="left-space">Usage</span>
+                                    </a>
+                    </li>
+
+                </ul>
+            </div>
+        </div>
+    </nav>
+
+    <div class="container col-md-12">
+        <div class="row lower-me">
+            <div class="col-sm-3 col-md-2 sidebar lower-me" style="background-color: #222222;top: 50px;">
+                <ul class="nav nav-sidebar overview" id="navigate">
+                    {% if request.session.is_admin or request.session.django_admin %}
+                    <li sub-menu="options_identity"><a href="#">Identity</b></a></li>
+                    {% endif %}
+                    {% if request.session.selected_project and not request.session.django_admin %}
+                    <li sub-menu="options_project">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Compute</b></a>
+                    </li>
+                    {% endif %}
+                    {% if request.session.selected_project or request.session.django_admin %}
+                    <li sub-menu="reporting_project">
+                        <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reporting</b></a>
+                    </li>
+                    {% endif %}
+                    <li sub-menu="options_settings"><a href="#">Settings </b></a></li>
+                </ul>
+            </div>
+            <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+                <div id="myModal" class="modal fade" role="dialog">
+                    <div class="modal-dialog">
+
+                        <!-- Modal content-->
+                        <div class="modal-content" style="width:290px">
+                            <div class="modal-header">
+                                <button type="submit" class="close" data-dismiss="modal" onclick="$('#current_openstack').val('--select--');">&times;</button>
+                                <h4 class="modal-title">Please Login</h4>
+                            </div>
+                            {% if not request.session.django_admin %}
+                            <form action="" method="post" name="openstack_login" id="openstack_login">
+                                {% csrf_token %}
+                                <input type="hidden" id="c_openstack" name="current_openstack" value="">
+                                <div class="modal-body" align="center">
+                                    <img style="padding:10px" src="/static/assets/img/logoo.jpg"><br>
+
+                                    <table cellpadding="10" cellspacing="10">
+                                        <tr>
+                                            <td style="padding:10px"><input class="form-control required" type="text" name="domain" id="domain" placeholder="Domain"
+                                                    required></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:10px"><input class="form-control required" type="text" name="username" id="username"
+                                                    placeholder="User Name" required></td>
+                                        </tr>
+                                        <tr>
+                                            <td></td>
+                                        </tr>
+                                        <tr>
+                                            <td style="padding:10px"><input class="form-control required" placeholder="Password" name="password" id="password"
+                                                    type="password" required></td>
+                                        </tr>
+                                    </table>
+                                    <p id="msg" style="color:red"></p>
+                                </div>
+                                <div class="modal-footer">
+                                    <button type="button" class="btn btn-primary" onclick="submitOpenstackLoginForm()">Login
+                            </button>
+                                </div>
+                            </form>
+                            {% endif %}
+                        </div>
+
+                    </div>
+                </div>
+                <div class="container lower-me col-md-12">
+                    {% block body %} {% endblock %}
+                </div>
+            </div>
+        </div>
+        </div>
+        <div align="right">
+        </div>
+        <div align="center" class="bottom">
+        <div class="footer">
+            <p align="center"> &copy; GS Lab 2017</p>
+        </div>
+    </div>
+
+    <script>
+        $("#current_openstack").on("change", function () {
+            $modal = $('#myModal');
+            if ($(this).val() !== '--select--') {
+                $modal.modal('show');
+            } else {
+                switch_common('', 'Openstack')
+            }
+        });
+
+    </script>
+
+</body>
+
+</html>

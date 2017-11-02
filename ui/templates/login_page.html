@@ -1,0 +1,74 @@
+<!doctype html>
+<html lang="en" class="fullscreen-bg">
+{% load static %}
+<head>
+    <title>Service Online</title>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=0">
+    <link rel="stylesheet" href="{% static 'assets/css/bootstrap.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/font-awesome/css/font-awesome.min.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/vendor/linearicons/style.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/main.css' %}">
+    <link rel="stylesheet" href="{% static 'assets/css/demo.css' %}">
+    <link href="https://fonts.googleapis.com/css?family=Source+Sans+Pro:300,400,600,700" rel="stylesheet">
+    <link rel="apple-touch-icon" sizes="76x76" href="{% static 'assets/img/log.PNG' %}">
+    <link rel="icon" type="image/png" sizes="96x96" href="{% static 'assets/img/log.PNG' %}">
+</head>
+
+<body>
+<div id="wrapper">
+    <div class="vertical-align-wrap">
+        <div class="vertical-align-middle">
+            <div class="auth-box ">
+                <div class="left">
+                    <div class="content">
+                        <div class="header">
+                            <div class="logo text-center"><img src="{% static 'assets/img/gs_lab.jpg' %}"
+                                                               alt="Klorofil Logo"></div>
+                            <p class="lead" style="color:#0080ff;"><b>ServiceOnline</b></p>
+                        </div>
+                        <form class="form-auth-small" action="{% url 'login' %}" method="POST">
+                            {% csrf_token %}
+                            <div class="form-group">
+                                <i><b style="color:red;">{% if message %}{{ message }}{% endif %}</b></i>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="signin-email" class="control-label sr-only">Domain</label>
+                                <input type="text" class="form-control" id="domain" name="domain" value="GSLAB"
+                                       placeholder="enter domain">
+                            </div>
+
+                            <div class="form-group">
+                                <label for="signin-email" class="control-label sr-only">Username</label>
+                                <input type="text" class="form-control" id="signin-email" name="username"
+                                       placeholder="enter username" required>
+                            </div>
+
+                            <div class="form-group">
+                                <label for="signin-password" class="control-label sr-only">Password</label>
+                                <input type="password" class="form-control" id="signin-password" name="password"
+                                       placeholder="enter password" required>
+                            </div>
+
+                            <div class="form-group clearfix">
+
+                            </div>
+
+                            <button type="submit" name="submit" class="btn btn-primary btn-lg btn-block">LOGIN</button>
+
+                        </form>
+
+                    </div>
+                </div>
+                <div class="right">
+                </div>
+                <div class="clearfix"></div>
+            </div>
+        </div>
+    </div>
+</div>
+</body>
+
+</html>

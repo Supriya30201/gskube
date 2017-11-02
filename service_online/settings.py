@@ -37,6 +37,13 @@ INSTALLED_APPS = [
     'django.contrib.sessions',
     'django.contrib.messages',
     'django.contrib.staticfiles',
+    'ui',
+    'core',
+    'lib',
+    'db',
+    'lib.active_directory',
+    'lib.adapter',
+    'lib.openstack',
 ]
 
 MIDDLEWARE = [
@@ -75,8 +82,10 @@ WSGI_APPLICATION = 'service_online.wsgi.application'
 
 DATABASES = {
     'default': {
-        'ENGINE': 'django.db.backends.sqlite3',
-        'NAME': os.path.join(BASE_DIR, 'db.sqlite3'),
+        'ENGINE': 'django.db.backends.mysql',
+        'NAME': 'service_online',
+        'USER': 'root',
+        'PASSWORD': 'root',
     }
 }
 

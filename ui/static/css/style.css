@@ -1,0 +1,56 @@
+.square {
+  position:absolute; top: 100px; left: 350px; color: red;width:500px; 
+
+}
+table{
+    padding : 20px 40px;
+    cell-spacing : 20px;
+    border-collapse: collapse;
+}
+
+
+#inner {
+    border: 2px solid #a1a1a1;
+    padding: 10px 40px; 
+    background: #dddddd;
+    width: 600px;
+    border-radius: 25px;
+}
+
+.w3-btn {size:100px;}
+
+#outer{
+    align: center;
+    background-color: white;
+    width: 700px;
+    padding-top: 2cm;
+    border: 20px solid #CD7F32;
+    padding: 20px;
+    margin-top: 2cm;
+
+}
+
+header {
+ top:0;
+ font-size: 30px;
+ 
+ background-color: black;
+ height:70px;
+ width:110%;
+ margin:-10px;
+ padding-left:20px;
+ text-align:;
+color: white;
+padding-top:0.4cm;
+}
+
+
+footer{
+ padding-left: 500px;
+}
+
+#sub{
+ left: 500px;
+ float: center;
+ text-align:center;
+}
