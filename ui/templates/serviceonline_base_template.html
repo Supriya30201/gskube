@@ -268,14 +268,14 @@
             <span class="icon-bar"></span>
             <span class="icon-bar"></span>
           </button>
-                <a class="navbar-brand" href="#">ServiceOnline</a>
+                <a class="navbar-brand" href="{% url 'dashboard' %}">ServiceOnline</a>
             </div>
             <div id="navbar" class="navbar-collapse collapse">
 
                 <ul class="nav navbar-nav navbar-right">
 
                     <li>
-                        {% if not request.session.django_admin %}
+                        {% if not request.session.is_django_admin %}
                         <form name="openstack_details" class="controllers" method="post">
                             {% csrf_token %}
                             <!-- <div class="input-group">
@@ -331,11 +331,11 @@
                 </ul>
 
                 <ul class="nav navbar-nav navbar-left options" id="options_identity">
-                    {% if request.session.is_admin and not request.session.django_admin %}
+                    {% if request.session.is_admin and not request.session.is_django_admin %}
                     <li>
                         <a href="" class="" >Projects </a>
                     </li>
-                    {% endif %} {% if request.session.django_admin %}
+                    {% endif %} {% if request.session.is_django_admin %}
                     <li>
                         <a href="" class="">
                                 <span class="left-space">Users</span>
@@ -357,26 +357,26 @@
 
                 </ul>
                 <ul class="nav navbar-nav navbar-left options" id="options_settings">
-                    {% if not request.session.django_admin %}
+                    {% if not request.session.is_django_admin %}
                     <li>
                         <a href="" class="">
                                 <span class="left-space">Openstack Preferences</span>
                             </a>
                     </li>
-                    {% endif %} {% if request.session.django_admin %}
+                    {% endif %} {% if request.session.is_django_admin %}
                     <li>
                         <a href="" class="">
                                 <span class="left-space">Openstack Management</span>
                             </a>
                     </li>
-                    {% endif %} {% if request.session.selected_project and not request.session.django_admin %}
+                    {% endif %} {% if request.session.selected_project and not request.session.is_django_admin %}
                     <li>
                         <a href="" class="">
                                 <span class="left-space">Manage Certificate</span>
                             </a>
                     </li>
                     {% endif %}
-                    {% if request.session.django_admin %}
+                    {% if request.session.is_django_admin %}
                     <li>
                         <a href="" class="">
                                 <span class="left-space">Active Directory</span>
@@ -400,7 +400,7 @@
                             <span class="left-space">Change Password</span>
                         </a>
                     </li>
-                    {% if request.session.django_admin %}
+                    {% if request.session.is_django_admin %}
                     <li>
                         <a href="" class="">
                                 <span class="left-space">SMTP configuration</span>
@@ -446,18 +446,18 @@
     </nav>
 
     <div class="container col-md-12">
-        <div class="row lower-me">
+        <div class="row">
             <div class="col-sm-3 col-md-2 sidebar lower-me" style="background-color: #222222;top: 50px;">
                 <ul class="nav nav-sidebar overview" id="navigate">
-                    {% if request.session.is_admin or request.session.django_admin %}
+                    {% if request.session.is_admin or request.session.is_django_admin %}
                     <li sub-menu="options_identity"><a href="#">Identity</b></a></li>
                     {% endif %}
-                    {% if request.session.selected_project and not request.session.django_admin %}
+                    {% if request.session.selected_project and not request.session.is_django_admin %}
                     <li sub-menu="options_project">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Compute</b></a>
                     </li>
                     {% endif %}
-                    {% if request.session.selected_project or request.session.django_admin %}
+                    {% if request.session.selected_project or request.session.is_django_admin %}
                     <li sub-menu="reporting_project">
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown">Reporting</b></a>
                     </li>
@@ -475,7 +475,7 @@
                                 <button type="submit" class="close" data-dismiss="modal" onclick="$('#current_openstack').val('--select--');">&times;</button>
                                 <h4 class="modal-title">Please Login</h4>
                             </div>
-                            {% if not request.session.django_admin %}
+                            {% if not request.session.is_django_admin %}
                             <form action="" method="post" name="openstack_login" id="openstack_login">
                                 {% csrf_token %}
                                 <input type="hidden" id="c_openstack" name="current_openstack" value="">

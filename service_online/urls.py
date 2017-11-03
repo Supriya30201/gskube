@@ -14,9 +14,12 @@ Including another URLconf
     2. Add a URL to urlpatterns:  url(r'^blog/', include('blog.urls'))
 """
 from django.conf.urls import url
+from django.conf.urls import include
 from core import views as core_views
 
 urlpatterns = [
     # Login URL
     url(r'^$', core_views.login, name='login'),
+    url(r'^dashboard/$', core_views.load_dashboard, name='dashboard'),
+    url(r'^django_admin/', include('core.urls')),
 ]
