@@ -1,0 +1,79 @@
+{% extends "serviceonline_base_template.html" %}
+{% block body %}
+
+<style>
+
+
+
+    .table-hover tbody tr:hover td {
+    background: #e4e4e4;
+}
+.table{
+width:70% !important;
+}
+tbody{
+background-color: rgba(245, 245, 245, 0.36) !important;
+}
+
+.form-controlcss{
+width: 60% !Important;
+}
+
+
+</style>
+
+<div class="container col-md-12" style="height:900px;">
+    <h3 align="center">Modify AD Group for {{ user_detail.full_name }}</h3><br/><br/>
+    <div align="center">
+        {% if message %}
+        <div align="center" class="alert alert-success fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{message}}</p>
+        </div>
+        {% endif %}
+        {% if error_message %}
+        <div id="success-alert" align="center" class="alert alert-danger fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{error_message}}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <ul class="breadcrumb">
+        <li><a href="{% url 'sol_users' %}">Users Information</a></li>
+       <li>Modify User's Group</li>
+    </ul>
+
+    {% if all_groups and user_groups %}
+    <div class="container" align="center">
+        <form id="add_form" method="post" action="{% url 'add_remove_ad_group' username=user_detail.username add_group=True %}">
+            <div class="col-md-5">
+                {% csrf_token %}
+                <select multiple name="groups">
+                    {% for group in all_groups %}
+                    {% if group not in user_groups %}
+                    <option value={{group}}>{{group}}</option>
+                    {% endif %}
+                    {% endfor %}
+                </select>
+                <button id="add" type="submit"> Add</button>
+            </div>
+        </form>
+        
+        <form id="delete_form" method="post" action="{% url 'add_remove_ad_group' username=user_detail.username add_group=False %}">
+            <div class="col-md-5">
+                {% csrf_token %}
+                <button id="delete" type="submit">Remove</button>
+                <select multiple name="groups">
+                    {% for group in user_groups %}
+                    <option value={{group}}>{{group}}</option>
+                    {% endfor %}
+                </select>
+            </div>
+
+        </form>
+    </div>
+    {% endif %}
+</div>
+
+{% endblock %}

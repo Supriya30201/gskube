@@ -6,10 +6,10 @@
 <div class="container col-md-12" align="center">
 
     {% if not request.session.selected_openstack and not request.session.is_django_admin %}
-    Hi {{ request.session.user_fname }}, Please connect to openstack.
+    Hi {{ request.session.user_first_name }}, Please connect to openstack.
     {% endif %}
     {% if request.session.selected_openstack and not request.session.selected_project %}
-    Hi {{ request.session.user_fname }}, Please connect project.
+    Hi {{ request.session.user_first_name }}, Please connect project.
     {% endif %}
     <div class="starter-template">
         <h3>Welcome to Service Online Dashboard</h3>
@@ -19,11 +19,11 @@
     <div class="panel panel-primary" align="left" style="width:50%">
         <div class="panel-heading">Quick Links</div>
         {% if request.session.is_django_admin %}
-        <div class="panel-body"><a href=""> <span class="glyphicon glyphicon-user"> </span> Manage
+        <div class="panel-body"><a href="{% url 'sol_users'%}"> <span class="glyphicon glyphicon-user"> </span> Manage
             Users</a></div>
         <div class="panel-body"><a href=""><span class="glyphicon glyphicon-th-large"> </span> Openstack
             Management </a></div>
-        <div class="panel-body"><a href=""><span class="glyphicon glyphicon-book"> </span>
+        <div class="panel-body"><a href="{% url 'active_directory'%}"><span class="glyphicon glyphicon-book"> </span>
             Active Directory </a></div>
         <div class="panel-body"><a href=""><span class="glyphicon glyphicon-book"> </span>
             OpenVpn Configuration </a></div>

@@ -1,0 +1,113 @@
+{% extends "serviceonline_base_template.html" %}
+<style>
+    .form-controlcss{
+width: 60% !Important;
+}
+
+</style>
+{% block body %}
+
+<div class="container col-md-12"><h3 align="center">Active Directory</h3>
+    <div align="center">
+        {% if message %}
+        <div align="center" class="alert alert-success fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{message}}</p>
+        </div>
+        {% endif %}
+        {% if error_message %}
+        <div id="success-alert" align="center" class="alert alert-danger fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{error_message}}</p>
+        </div>
+        {% endif %}
+    </div>
+    <div class="container col-md-12">
+        <div class="col-md-12">
+
+            <form method="post" action="{% url 'active_directory' %}">
+                {% csrf_token %}
+                <div class="container1">
+                    <div class="col-md-6"><h4 align="left">Authenticatin AD Information</h4>
+
+                        <table class="table table-hover" align="left">
+
+                            <tr>
+                                <td><label> AD Server IP : </label></td>
+                                <td><input class="form-control form-controlcss" type="text" name="auth_ad_ip"
+                                           value="{{ auth_ad.auth_ad_host }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><label> AD Server port : </label></td>
+                                <td><input class="form-control form-controlcss" type="text" name="auth_ad_port"
+                                           value="{{ auth_ad.auth_ad_port }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><label> AD Server DN : </label></td>
+                                <td><input class="form-control form-controlcss" type="text" name="auth_ad_dn"
+                                           value="{{ auth_ad.auth_ad_dn }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><label> AD Server Domain : </label></td>
+                                <td><input class="form-control form-controlcss" type="text" name="auth_ad_domain"
+                                           value="{{ auth_ad.auth_ad_domain }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><label> AD Server Username : </label></td>
+                                <td><input class="form-control form-controlcss" type="text" name="auth_ad_username"
+                                           value="{{ auth_ad.auth_ad_username }}" required></td>
+
+                            </tr>
+                            <tr>
+                                <td><label> AD Server Password : </label></td>
+                                <td><input class="form-control form-controlcss" type="password" name="auth_ad_password"
+                                           value="{{ auth_ad.auth_ad_password }}" required></td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+                </div>
+                <div class="container2">
+                    <div class="col-md-5"><h4 align="left">Local AD Information</h4>
+
+                        <table class="table table-hover" align="left">
+                            <tr>
+                                <td><input class="form-control form-controlcss" type="text" name="local_ad_ip"
+                                           value="{{ local_ad.local_ad_host }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-control form-controlcss" type="text" name="local_ad_dn"
+                                           value="{{ local_ad.local_ad_port }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-control form-controlcss" type="text" name="local_ad_port"
+                                           value="{{ local_ad.local_ad_dn }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-control form-controlcss" type="text" name="local_ad_domain"
+                                           value="{{ local_ad.local_ad_domain }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-control form-controlcss" type="text" name="local_ad_username"
+                                           value="{{ local_ad.local_ad_username }}" required></td>
+                            </tr>
+                            <tr>
+                                <td><input class="form-control form-controlcss" type="password" name="local_ad_password"
+                                           value="{{ local_ad.local_ad_password }}" required></td>
+                            </tr>
+
+                        </table>
+
+                    </div>
+                </div>
+                <div align="center">
+                    <button class="btn btn-primary" style="margin-bottom: 80px;" type="submit">Save AD Details</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+</div>
+
+{% endblock %}

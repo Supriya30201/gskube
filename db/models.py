@@ -41,8 +41,8 @@ class User(models.Model):
     full_name = models.CharField(max_length=255)
     email_id = models.CharField(max_length=255)
     default_project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)
-    active = models.BooleanField()
-    deleted = models.BooleanField()
+    active = models.BooleanField(default=True)
+    deleted = models.BooleanField(default=False)
 
 
 class UserCredential(models.Model):

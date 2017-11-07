@@ -310,8 +310,8 @@
                     <li>
                         <a href="#" class="dropdown-toggle" data-toggle="dropdown"> <span
                             class="glyphicon glyphicon-user"></span>
-                        {% if request.session.user_fname %}
-                        {{request.session.user_fname}}
+                        {% if request.session.user_first_name %}
+                        {{request.session.user_first_name}}
                         {% else %}
                         {{request.session.user}}
                         {% endif %}<b class="caret"></b></a>
@@ -337,7 +337,7 @@
                     </li>
                     {% endif %} {% if request.session.is_django_admin %}
                     <li>
-                        <a href="" class="">
+                        <a href="{% url 'sol_users'%}" class="">
                                 <span class="left-space">Users</span>
                             </a>
                     </li>
@@ -378,7 +378,7 @@
                     {% endif %}
                     {% if request.session.is_django_admin %}
                     <li>
-                        <a href="" class="">
+                        <a href="{% url 'active_directory'%}" class="">
                                 <span class="left-space">Active Directory</span>
                             </a>
                     </li>
