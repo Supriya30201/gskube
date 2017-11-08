@@ -4,6 +4,9 @@ from lib.active_directory import active_directory as ad
 from django.contrib.auth import login as django_login
 from db import models as sol_db
 from db import db_service
+import logging
+
+logger = logging.getLogger(__name__)
 
 
 def load_dashboard(request):
@@ -97,49 +100,72 @@ def list_sol_users(request, message=None, error_message=None):
 
 def create_user(request):
     """
-    create user method is used to create a user in AD and sol.
+    create user method is used to create a user in AD and in sol db.
     GET request will load the template and POST request will create a user.
     :param request:
     :return:
     """
+    # in case if it's GET request redirect to create user page.
     if request.method == constants.GET:
         return render(request, constants.CREATE_USER_TEMPLATE)
-
+    # get user details from auth AD and pass username
     user_detail = ad.retrieve_user_details(db_service.get_auth_ad(), request.POST["id"])
     if constants.ERROR_MESSAGE in user_detail:
         return list_sol_users(request, error_message=user_detail[constants.ERROR_MESSAGE])
 
     user_detail[constants.USER_PASSWORD] = request.POST["new_password"]
-
+    # pass the user's details taken from auth AD to create user in local AD
     result = ad.create_user(db_service.get_local_ad(), user_detail)
     if result and constants.ERROR_MESSAGE in result:
         return list_sol_users(request, error_message=result[constants.ERROR_MESSAGE])
-
+    # add that created user in SOL database
     db_service.create_user(user_detail)
 
     return list_sol_users(request, message="User created successfully.")
 
 
 def change_user_status(request, username=None):
+    """
+      Change AD user's status i.e activate or deactivate
+       Change the active flag form SOL db
+        :param request
+        :param username wants to create it in AD
+        :return render to list_users page with message or error_message
+    """
+    # pass username and local ad details to change the AD user's status
     result = ad.change_status(db_service.get_local_ad(), username)
     if constants.ERROR_MESSAGE in result:
         list_sol_users(request, error_message=result[constants.ERROR_MESSAGE])
-
+    # change that user status from SOL database
     db_service.change_user_status(username)
     return list_sol_users(request, message=result[constants.MESSAGE])
 
 
 def delete_user(request, username=None):
+    """
+    Delete user from AD as well as from SOL db
+    :param request
+    :param username wants ro delete
+    :return render to list_users page with message or error_message
+    """
+    # pass username with local ad details to delete user from AD
     result = ad.delete_user(db_service.get_local_ad(), username)
     if result and constants.ERROR_MESSAGE in result:
         list_sol_users(request, error_message=result[constants.ERROR_MESSAGE])
-
+    #delete the user from SOL database
     db_service.delete_user(username)
     return list_sol_users(request, message="User deleted successfully.")
 
 
 def active_directory_configuration(request):
+    """
+    Store the AD details in SOL database
+    :param request:
+    :return:
+    """
+    # in case if it's GET request redirect to active directory template with AD details if any.
     if request.method == constants.GET:
+        # if ad details are already stored in db then it should able to see, so we render this details to AD_template
         local_active_directory = db_service.get_local_ad()
         auth_active_directory = db_service.get_auth_ad()
         return render(request, constants.ACTIVE_DIRECTORY_TEMPLATE, {'auth_ad': auth_active_directory,
@@ -150,10 +176,12 @@ def active_directory_configuration(request):
     auth_active_directory = None
     local_active_directory = None
     try:
+        #store local AD details in SOL DB
         local_active_directory = db_service.store_local_ad(request.POST['local_ad_ip'], request.POST['local_ad_port'],
                                                            request.POST['local_ad_dn'], request.POST['local_ad_domain'],
                                                            request.POST['local_ad_username'],
                                                            request.POST['local_ad_password'])
+        # store auth AD details in SOL DB
         auth_active_directory = db_service.store_auth_ad(request.POST['auth_ad_ip'], request.POST['auth_ad_port'],
                                                          request.POST['auth_ad_dn'], request.POST['auth_ad_domain'],
                                                          request.POST['auth_ad_username'],
@@ -172,12 +200,24 @@ def active_directory_configuration(request):
 
 
 def list_active_directory_group(request, username=None, message=None, error_message=None):
+    """
+    List all the groups from local AD, and if username is given it will list groups accordingly
+    :param request:
+    :param username:
+    :param message:
+    :param error_message:
+    :return:
+    """
+    # get the user details
     user_detail = db_service.get_user(username)
+    #get AD details
     active_directory = db_service.get_local_ad()
+    # pass AD details to load all groups from AD
     all_groups = ad.load_all_groups(active_directory)
     if isinstance(all_groups, dict):
         return render(request, constants.ACTIVE_DIRECTORY_GROUP_TEMPLATE,
                       {constants.ERROR_MESSAGE: all_groups[constants.ERROR_MESSAGE], 'user_detail': user_detail})
+    # pass user details and AD details to load groups from AD which user is added
     user_groups = ad.load_all_groups(active_directory, username)
     if isinstance(user_groups, dict):
         return render(request, constants.ACTIVE_DIRECTORY_GROUP_TEMPLATE,
@@ -189,6 +229,14 @@ def list_active_directory_group(request, username=None, message=None, error_mess
 
 
 def add_remove_ad_group(request, username=None, add_group=True):
+    """
+    Add/Remove the groups from specified username
+    :param request:
+    :param username:
+    :param add_group:
+    :return:
+    """
+    #get the list of group from html
     groups = request.POST.getlist('groups')
     response = ad.add_remove_ad_groups(db_service.get_local_ad(), username, groups, add_group)
     if response and constants.ERROR_MESSAGE in response:
@@ -198,6 +246,7 @@ def add_remove_ad_group(request, username=None, add_group=True):
 
 
 def openvpn_configuration(request):
+
     if request.method == constants.GET:
         openvpn_conf = db_service.get_openvpn_configuration()
         return render(request, constants.OPENVPN_TEMPLATE, {'openvpn_conf': openvpn_conf})

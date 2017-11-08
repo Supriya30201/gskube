@@ -112,26 +112,48 @@ def update_configuration(key, value):
 
 
 def create_user(user_detail):
+    """
+    Store the users deails in SOL DB
+    :param user_detail: username, user_full_name, email
+    :return:
+    """
+    #store user details in db
     user, _ = sol_db.User.objects.get_or_create(username=user_detail[constants.USERNAME],
                                                 full_name=user_detail[constants.USER_FULL_NAME],
                                                 email_id=user_detail[constants.USER_EMAIL])
+    #change the flag true i.e user is in activated state
     user.active = True
     user.deleted = False
     user.save()
 
 
 def change_user_status(username):
+    """
+    Change the user's flag (Activate/Deactivate)
+    :param username:
+    :return:
+    """
     user = sol_db.User.objects.get(username=username)
     user.active = not user.active
     user.save()
 
 
 def delete_user(username):
+    """
+    Delete the user from SOL DB by changing the deleted flag to True
+    :param username:
+    :return:
+    """
     user = sol_db.User.objects.get(username=username)
     user.deleted = True
     user.save()
 
 
 def get_user(username):
+    """
+    Get the users details from SOL DB
+    :param username:
+    :return:
+    """
     return sol_db.User.objects.get(username=username)
 

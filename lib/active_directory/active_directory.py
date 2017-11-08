@@ -80,10 +80,11 @@ def sol_authentication(username, password, domain=None):
 
 def retrieve_user_details(active_directory, username):
     """
+    Get the details for specified user from auth AD
+    :param object of auth AD details(username,host, domain, password)
+    :param username
+    :return: either user_details list or error_message
 
-    :param active_directory:
-    :param username:
-    :return:
     """
     username = str(username).upper()
     conn = None
@@ -127,6 +128,12 @@ def retrieve_user_details(active_directory, username):
 
 
 def create_user(active_directory, user_detail):
+    """
+        create user method is used to create a user in AD .
+        :param object of local AD details
+        :param object of users details contais username, users_full_name, email
+        :return error_message if any else it will return none
+    """
     name = user_detail[constants.USER_FULL_NAME].split()
     fname = name[0]
     lname = name[len(name) - 1]
@@ -160,10 +167,11 @@ def create_user(active_directory, user_detail):
 
 def change_status(active_directory, username):
     """
-         Change AD user's status i.e Active/Deactive
-          :param :username
-          :return: Success message or either error message
-      """
+        Change AD user's status i.e Active/Deactive
+        :param object of local AD details
+        :param username
+        :return error_message if any else it will return none
+    """
     user = sol_db.User.objects.get(username=username)
     script = 'Enable-ADAccount -Identity "' + username + '"'
     message = "Successfully Activated "
@@ -184,9 +192,10 @@ def change_status(active_directory, username):
 
 def delete_user(active_directory, username):
     """
-     Delete user from Active Directory and Django Database
+     Delete user from Active Directory
+      :param object of local AD details
       :param :username that wants to delete
-      :return: Success message or either error message
+      :return: error message or either none
     """
     script = 'Remove-ADUser -Identity "' + username + '" -Confirm:$false'
     output = execute_script_winrm(active_directory, script)
@@ -199,6 +208,12 @@ def delete_user(active_directory, username):
 
 
 def load_all_groups(active_directory, username=None):
+    """
+    It will get the list of all groups from AD or if username given then get the groups in which user exist
+    :param active_directory: object of local AD details
+    :param username
+    :return: group list or either error_message
+    """
     script = 'Get-ADGroup -Filter *' if not username else 'Get-ADPrincipalGroupMembership -Identity "' + username + '"'
     script = script + ' | Select Name'
     output = execute_script_winrm(active_directory, script)
@@ -213,6 +228,14 @@ def load_all_groups(active_directory, username=None):
 
 
 def add_remove_ad_groups(active_directory, username, groups, add_group):
+    """
+    It will assign the one or more group to user or either remove it
+    :param active_directory: object of local AD details
+    :param username: which wants to get add/remove
+    :param groups:
+    :param add_group: its flag, its value decide to get added or removed
+    :return: error_message or either  none
+    """
     script = 'Remove-ADGroupMember "' if not add_group else 'Add-ADGroupMember "'
     for group in groups:
         output = execute_script_winrm(active_directory, script + group + '" "' + username + '"')
