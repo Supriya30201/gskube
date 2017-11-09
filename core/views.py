@@ -5,6 +5,7 @@ from django.contrib.auth import login as django_login
 from db import models as sol_db
 from db import db_service
 import logging
+from lib import factory
 
 logger = logging.getLogger(__name__)
 
@@ -250,3 +251,40 @@ def openvpn_configuration(request):
     if request.method == constants.GET:
         openvpn_conf = db_service.get_openvpn_configuration()
         return render(request, constants.OPENVPN_TEMPLATE, {'openvpn_conf': openvpn_conf})
+
+
+def hypervisor_management(request, message=None, error_message=None):
+    return render(request, constants.HYPERVISORS_TEMPLATE, {'hypervisors': db_service.load_hypervisors(),
+                                                            constants.MESSAGE: message,
+                                                            constants.ERROR_MESSAGE: error_message})
+
+
+def create_hypervisor(request):
+    if request.method == constants.GET:
+        return render(request, constants.CREATE_HYPERVISOR_TEMPLATE)
+
+    hypervisor_type = request.POST['hypervisor_type']
+    protocol = request.POST['protocol']
+    host = request.POST['host']
+    port = request.POST['port']
+    domain = request.POST['domain']
+    username = request.POST['username']
+    password = request.POST['password']
+
+    adapter = factory.get_adapter(hypervisor_type)
+    user_detail = adapter.create_sol_user(protocol, host, port, domain, username, password)
+
+    if constants.ERROR_MESSAGE in user_detail:
+        return hypervisor_management(request, error_message=user_detail[constants.ERROR_MESSAGE])
+
+    hypervisor = db_service.create_hypervisor(hypervisor_type, protocol, host, port)
+    user = db_service.get_user(constants.HYPERVISOR_SOLUSER_NAME)
+    if not user:
+        user = db_service.create_user({constants.USERNAME: constants.HYPERVISOR_SOLUSER_NAME,
+                                       constants.USER_EMAIL: constants.HYPERVISOR_SOLUSER_EMAIL,
+                                       constants.USER_FULL_NAME: constants.HYPERVISOR_SOLUSER_NAME})
+    db_service.save_user_credentials(user, hypervisor, domain, constants.HYPERVISOR_SOLUSER_NAME,
+                                     user_detail['user_password'])
+    db_service.update_hypervisor_user_id(user, hypervisor, user_detail['user_id'])
+
+    return hypervisor_management(request, message='Hypervisor added successfully.')

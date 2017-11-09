@@ -360,13 +360,13 @@
                     {% if not request.session.is_django_admin %}
                     <li>
                         <a href="" class="">
-                                <span class="left-space">Openstack Preferences</span>
+                                <span class="left-space">Hypervisor Preferences</span>
                             </a>
                     </li>
                     {% endif %} {% if request.session.is_django_admin %}
                     <li>
-                        <a href="" class="">
-                                <span class="left-space">Openstack Management</span>
+                        <a href="{% url 'hypervisor_management'%}" class="">
+                                <span class="left-space">Hypervisor Management</span>
                             </a>
                     </li>
                     {% endif %} {% if request.session.selected_project and not request.session.is_django_admin %}

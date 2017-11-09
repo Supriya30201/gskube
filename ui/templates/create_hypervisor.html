@@ -1,0 +1,78 @@
+{% extends "serviceonline_base_template.html" %}
+
+{% block body %}
+
+<form action="" method="post" name="openstack_login" id="openstack_login">
+    {% csrf_token %}
+    <div align="center">
+        {% if message %}
+        <div align="center" class="alert alert-success fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{message}}</p>
+        </div>
+        {% endif %}
+        {% if error_message %}
+        <div id="success-alert" align="center" class="alert alert-danger fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{error_message}}</p>
+        </div>
+        {% endif %}
+    </div>
+
+    <ul class="breadcrumb">
+        <li><a href="{% url 'hypervisor_management' %}">Hypervisor Management</a></li>
+        <li>Admin Login</li>
+    </ul>
+
+    <div align="center">
+        <h4>Login</h4>
+        <table cellpadding="10" cellspacing="10">
+            <tr>
+                <td style="padding:5px"><label>Type</label></td>
+                <td style="padding:5px"><select name="hypervisor_type">
+                    <option value="openstack">Openstack</option>
+                </select></td>
+            </tr>
+            <tr>
+                <td style="padding:5px"><label>Protocol</label></td>
+                <td style="padding:5px"><input class="form-control required" name="protocol" type="text"
+                                               placeholder="Protocol" required></td>
+            </tr>
+            <tr>
+                <td style="padding:5px"><label>Host</label></td>
+                <td style="padding:5px"><input class="form-control required" name="host" type="text"
+                                               title="openstack host" placeholder="Host" required></td>
+            </tr>
+            <tr>
+                <td style="padding:5px"><label>Port</label></td>
+                <td style="padding:5px"><input class="form-control required" name="port" type="text" placeholder="Port"
+                                               title="openstack keystonePort" required></td>
+            </tr>
+            <tr>
+                <td style="padding:5px"><label>Domain</label></td>
+                <td style="padding:5px"><input class="form-control required" type="text" name="domain" id="domain"
+                                               placeholder="Domain" title="openstack Domain" required></td>
+            </tr>
+            <tr>
+                <td style="padding:5px"><label>Username</label></td>
+                <td style="padding:5px"><input class="form-control required" type="text" name="username" id="username"
+                                               title="openstack admin user" placeholder="Username" required></td>
+            </tr>
+            <tr>
+                <td style="padding:5px"><label>Password</label></td>
+                <td style="padding:5px"><input class="form-control required" placeholder="Password" name="password"
+                                               id="password" type="password" required></td>
+            </tr>
+
+
+        </table>
+        <p id="msg" style="color:red"></p>
+    </div>
+    <div align="center">
+        <button type="submit" style="margin-bottom: 80px;" class="btn btn-primary">
+            Login
+        </button>
+    </div>
+</form>
+
+{% endblock %}

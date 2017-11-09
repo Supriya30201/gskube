@@ -21,7 +21,7 @@
         {% if request.session.is_django_admin %}
         <div class="panel-body"><a href="{% url 'sol_users'%}"> <span class="glyphicon glyphicon-user"> </span> Manage
             Users</a></div>
-        <div class="panel-body"><a href=""><span class="glyphicon glyphicon-th-large"> </span> Openstack
+        <div class="panel-body"><a href="{% url 'hypervisor_management'%}"><span class="glyphicon glyphicon-th-large"> </span> Hypervisor
             Management </a></div>
         <div class="panel-body"><a href="{% url 'active_directory'%}"><span class="glyphicon glyphicon-book"> </span>
             Active Directory </a></div>

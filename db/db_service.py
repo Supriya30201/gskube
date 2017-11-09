@@ -117,14 +117,15 @@ def create_user(user_detail):
     :param user_detail: username, user_full_name, email
     :return:
     """
-    #store user details in db
+    # store user details in db
     user, _ = sol_db.User.objects.get_or_create(username=user_detail[constants.USERNAME],
                                                 full_name=user_detail[constants.USER_FULL_NAME],
                                                 email_id=user_detail[constants.USER_EMAIL])
-    #change the flag true i.e user is in activated state
+    # change the flag true i.e user is in activated state
     user.active = True
     user.deleted = False
     user.save()
+    return user
 
 
 def change_user_status(username):
@@ -155,5 +156,43 @@ def get_user(username):
     :param username:
     :return:
     """
-    return sol_db.User.objects.get(username=username)
+    user = sol_db.User.objects.filter(username=username)
+    if user:
+        return user.first()
+    return None
 
+
+def load_hypervisors():
+    hypervisors = sol_db.Hypervisor.objects.all()
+    hypervisor_list = []
+
+    for hypervisor in hypervisors:
+        hypervisor_list.append({
+            'host': hypervisor.host,
+            'port': hypervisor.port,
+            'protocol': hypervisor.protocol,
+            'type': hypervisor.type
+        })
+
+    return hypervisor_list
+
+
+def create_hypervisor(hypervisor_type, protocol, host, port):
+    hypervisor, _ = sol_db.Hypervisor.objects.get_or_create(type=hypervisor_type, host=str(host), protocol=protocol)
+    hypervisor.port = port
+    hypervisor.save()
+    return hypervisor
+
+
+def save_user_credentials(user, hypervisor, domain, username, password):
+    user_creds, _ = sol_db.UserCredential.objects.get_or_create(user=user, hypervisor=hypervisor)
+    user_creds.domain = domain
+    user_creds.username = username
+    user_creds.password = password
+    user_creds.save()
+
+
+def update_hypervisor_user_id(user, hypervisor, user_id):
+    hypervisor_user, _ = sol_db.HypervisorUser.objects.get_or_create(user=user, hypervisor=hypervisor)
+    hypervisor_user.hypervisor_user_id = user_id
+    hypervisor_user.save()

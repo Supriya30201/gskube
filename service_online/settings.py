@@ -44,6 +44,7 @@ INSTALLED_APPS = [
     'lib.active_directory',
     'lib.adapter',
     'lib.openstack',
+    'exception'
 ]
 
 MIDDLEWARE = [

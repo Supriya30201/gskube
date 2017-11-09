@@ -10,6 +10,13 @@ MESSAGE = "message"
 ERROR_MESSAGE = "error_message"
 
 
+# Hypervisor Bot User
+HYPERVISOR_SOLUSER_NAME = "SOLUSER"
+HYPERVISOR_SOLUSER_PASSWORD = "gsLab@123"
+HYPERVISOR_SOLUSER_EMAIL = "soluser@gslab.com"
+HYPERVISOR_SOLUSER_DESCRIPTION = "Bot user to generate report and delete VM"
+
+
 # AD Related Constants
 AUTH_AD_HOST = "auth_ad_host"
 AUTH_AD_PORT = "auth_ad_port"
@@ -49,5 +56,7 @@ CREATE_USER_TEMPLATE = "create_user.html"
 ACTIVE_DIRECTORY_TEMPLATE = "ad_configuration.html"
 ACTIVE_DIRECTORY_GROUP_TEMPLATE = "modify_ad_group.html"
 OPENVPN_TEMPLATE = "openvpn_configuration.html"
+HYPERVISORS_TEMPLATE = "hypervisors.html"
+CREATE_HYPERVISOR_TEMPLATE = "create_hypervisor.html"
 
 

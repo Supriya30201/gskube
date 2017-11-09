@@ -16,9 +16,9 @@ class Hypervisor(models.Model):
         Hypervisor model will store the details of any hypervisor.
         We have specifically taken type column to decide the type of hypervisor (openstack, kvm etc.)
     """
-    host = models.CharField(max_length=100, primary_key=True)
+    host = models.CharField(max_length=100)
     type = models.CharField(max_length=50)
-    port = models.IntegerField()
+    port = models.IntegerField(null=True, blank=True)
     protocol = models.CharField(max_length=50)
 
 
@@ -51,8 +51,8 @@ class UserCredential(models.Model):
     """
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
     hypervisor = models.ForeignKey(Hypervisor, on_delete=models.DO_NOTHING, null=True)
-    domain = models.CharField(max_length=255)
-    username = models.CharField(max_length=255)
+    domain = models.CharField(max_length=255, null=True)
+    username = models.CharField(max_length=255, )
     password = models.CharField(max_length=255)
 
 
@@ -80,7 +80,7 @@ class HypervisorUser(models.Model):
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
     hypervisor = models.ForeignKey(Hypervisor, on_delete=models.DO_NOTHING, null=True)
     hypervisor_user_id = models.CharField(max_length=255, blank=True, null=True)
-    has_access = models.BooleanField()
+    has_access = models.BooleanField(default=False)
 
 
 class HypervisorReport(models.Model):
