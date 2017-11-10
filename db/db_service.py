@@ -150,15 +150,19 @@ def delete_user(username):
     user.save()
 
 
-def get_user(username):
+def get_user(username=None):
     """
     Get the users details from SOL DB
     :param username:
     :return:
     """
+    if not username:
+        return sol_db.User.objects.filter(deleted=False, active=True).all()
+
     user = sol_db.User.objects.filter(username=username)
     if user:
         return user.first()
+
     return None
 
 
@@ -166,12 +170,24 @@ def load_hypervisors():
     hypervisors = sol_db.Hypervisor.objects.all()
     hypervisor_list = []
 
+    user = sol_db.User.objects.filter(username=constants.HYPERVISOR_SOLUSER_NAME)
+    if user:
+        user = user.first()
+
     for hypervisor in hypervisors:
+        superuser_created = False
+        if user:
+            hypervisor_user = sol_db.HypervisorUser.objects.filter(user=user.id, hypervisor=hypervisor.id)
+            if hypervisor_user:
+                superuser_created = True
+
         hypervisor_list.append({
+            'id': hypervisor.id,
             'host': hypervisor.host,
             'port': hypervisor.port,
             'protocol': hypervisor.protocol,
-            'type': hypervisor.type
+            'type': hypervisor.type,
+            'has_superuser': superuser_created
         })
 
     return hypervisor_list
@@ -195,4 +211,27 @@ def save_user_credentials(user, hypervisor, domain, username, password):
 def update_hypervisor_user_id(user, hypervisor, user_id):
     hypervisor_user, _ = sol_db.HypervisorUser.objects.get_or_create(user=user, hypervisor=hypervisor)
     hypervisor_user.hypervisor_user_id = user_id
+    hypervisor_user.save()
+
+
+def get_hypervisor_users(hypervisor_id):
+    users = sol_db.HypervisorUser.objects.filter(hypervisor=hypervisor_id, has_access=True)
+    if not users:
+        return None
+    users = users.all()
+    hypervisor_users = []
+    for user in users:
+        hypervisor_users.append({
+            'username': user.user.username,
+            'full_name': user.user.full_name
+        })
+
+    return hypervisor_users
+
+
+def set_hypervisor_user_access(user_name, hypervisor_id, access=True):
+    user = get_user(user_name)
+    hypervisor = sol_db.Hypervisor.objects.get(id=hypervisor_id)
+    hypervisor_user, _ = sol_db.HypervisorUser.objects.get_or_create(user=user, hypervisor=hypervisor)
+    hypervisor_user.has_access = access
     hypervisor_user.save()

@@ -254,6 +254,7 @@ def openvpn_configuration(request):
 
 
 def hypervisor_management(request, message=None, error_message=None):
+
     return render(request, constants.HYPERVISORS_TEMPLATE, {'hypervisors': db_service.load_hypervisors(),
                                                             constants.MESSAGE: message,
                                                             constants.ERROR_MESSAGE: error_message})
@@ -288,3 +289,22 @@ def create_hypervisor(request):
     db_service.update_hypervisor_user_id(user, hypervisor, user_detail['user_id'])
 
     return hypervisor_management(request, message='Hypervisor added successfully.')
+
+
+def assign_hypervisor(request, hypervisor_id=None, username=None):
+    message = None
+    error_message = None
+    if username:
+        db_service.set_hypervisor_user_access(username, hypervisor_id, False)
+
+    if request.method == constants.POST:
+        username = request.POST['username']
+        hypervisor_id = request.POST['hypervisor_id']
+        db_service.set_hypervisor_user_access(username, hypervisor_id)
+
+    users = db_service.get_user()
+    hypervisor_users = db_service.get_hypervisor_users(hypervisor_id)
+    return render(request, constants.HYPERVISOR_USERS_TEMPLATE, {'hypervisor_id': hypervisor_id, 'users': users,
+                                                                 'hypervisor_users': hypervisor_users,
+                                                                 constants.MESSAGE: message,
+                                                                 constants.ERROR_MESSAGE: error_message})

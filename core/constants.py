@@ -58,5 +58,6 @@ ACTIVE_DIRECTORY_GROUP_TEMPLATE = "modify_ad_group.html"
 OPENVPN_TEMPLATE = "openvpn_configuration.html"
 HYPERVISORS_TEMPLATE = "hypervisors.html"
 CREATE_HYPERVISOR_TEMPLATE = "create_hypervisor.html"
+HYPERVISOR_USERS_TEMPLATE = "hypervisor_users.html"
 
 
