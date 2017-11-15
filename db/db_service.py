@@ -177,7 +177,7 @@ def load_hypervisors():
     for hypervisor in hypervisors:
         superuser_created = False
         if user:
-            hypervisor_user = sol_db.HypervisorUser.objects.filter(user=user.id, hypervisor=hypervisor.id)
+            hypervisor_user = sol_db.HypervisorUser.objects.filter(user=user.username, hypervisor=hypervisor.id)
             if hypervisor_user:
                 superuser_created = True
 
@@ -195,6 +195,20 @@ def load_hypervisors():
 
 def get_hypervisor(host):
     return sol_db.Hypervisor.objects.get(host=host)
+
+
+def get_hypervisor_of_user(username):
+    hypervisors = sol_db.HypervisorUser.objects.filter(user=username)
+    if not hypervisors:
+        return []
+    user_hypervisors = []
+    hypervisors = hypervisors.all()
+    for hypervisor in hypervisors:
+        user_hypervisors.append({constants.TYPE: hypervisor.hypervisor.type,
+                                 constants.PROTOCOL: hypervisor.hypervisor.protocol,
+                                 constants.HOST: hypervisor.hypervisor.host,
+                                 constants.PORT: hypervisor.hypervisor.port})
+    return user_hypervisors
 
 
 def create_hypervisor(hypervisor_type, protocol, host, port):

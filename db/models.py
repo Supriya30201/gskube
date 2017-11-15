@@ -37,7 +37,7 @@ class User(models.Model):
         if user gets deleted, we will not delete user from the SOL database.
         we'll just mark user deleted using deleted flag.
     """
-    username = models.CharField(max_length=255)
+    username = models.CharField(max_length=255, primary_key=True)
     full_name = models.CharField(max_length=255)
     email_id = models.CharField(max_length=255)
     default_project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)

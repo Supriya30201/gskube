@@ -6,6 +6,48 @@ from exception.openstack_exception import OpenstackException
 from core import views as core_views
 
 
+def load_hypervisor_projects(request):
+    host = request.POST['current_hypervisor']
+    if host == '--select--':
+        clear_session_variables(request, [constants.PROJECTS, constants.SELECTED_PROJECT,
+                                          constants.SELECTED_HYPERVISOR_OBJ])
+        return render(request, constants.DASHBOARD_TEMPLATE)
+    selected_hypervisor = get_selected_hypervisor(request, host)
+    selected_hypervisor[constants.DOMAIN] = request.POST['domain']
+    selected_hypervisor[constants.USERNAME] = request.POST['username']
+    selected_hypervisor[constants.PASSWORD] = request.POST['password']
+    print selected_hypervisor
+    error_message = None
+    try:
+        adapter = factory.get_adapter(selected_hypervisor[constants.TYPE], selected_hypervisor)
+        projects, _ = adapter.get_projects_using_unscoped_login()
+        request.session[constants.PROJECTS] = projects
+        request.session[constants.SELECTED_HYPERVISOR_OBJ] = selected_hypervisor
+    except OpenstackException as oe:
+        error_message = oe.get_message()
+    except Exception as e:
+        error_message = e.message
+    return render(request, constants.DASHBOARD_TEMPLATE, {'hypervisor_exception': error_message})
+
+
+def mark_project_selection(request):
+    selected_project = request.POST['hypervisor_project']
+    if selected_project == '--select--':
+        clear_session_variables(request, [constants.SELECTED_PROJECT])
+        return render(request, constants.DASHBOARD_TEMPLATE)
+    for project in request.session[constants.PROJECTS]:
+        if project['id'] == selected_project:
+            request.session[constants.SELECTED_PROJECT] = project
+            break
+    return render(request, constants.DASHBOARD_TEMPLATE)
+
+
+def get_selected_hypervisor(request, host):
+    for hypervisor in request.session[constants.USER_HYPERVISORS]:
+        if hypervisor[constants.HOST] == host:
+            return hypervisor
+
+
 def create_project(request):
     if request.method == constants.GET:
         return render(request, constants.CREATE_PROJECT_TEMPLATE)

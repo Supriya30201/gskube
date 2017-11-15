@@ -197,7 +197,8 @@ $(document).ready( function() {
             {% for hypervisor in hypervisors %}
             <tr>
                 <td><a href="{% url 'hypervisor_login' host=hypervisor.host%}">{{ hypervisor.host }}</a></td>
-                {% if request.session.projects and hypervisor.host == request.session.selected_hypervisor %}
+                {% if request.session.projects %}
+                {% if hypervisor.host == request.session.selected_hypervisor%}
                 <td>
                     <select name="select_project" onchange="project_select_action(this)">
                         <option value="--select--">--select--</option>
@@ -222,6 +223,7 @@ $(document).ready( function() {
                 {% else %}
                 <td> - </td>
                 <td> - </td>
+                {% endif %}
                 {% endif %}
                 <td>{{ hypervisor.port }}</td>
                 <td>{{ hypervisor.type }}</td>

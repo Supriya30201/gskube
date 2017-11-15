@@ -15,16 +15,15 @@ class Openstack(sol_adapter.SolAadapter):
                 self.username = str(hypervisor_details['username'])
                 self.password = str(hypervisor_details['password'])
                 self.keystone_client = None
+                self.nova_client = None
             else:
                 self.keystone_client = keystone.get_client(self.protocol, self.host, self.port,
                                                            str(hypervisor_details['token']))
             return
 
-    def create_sol_user(self, protocol, host, port, domain, username, password):
+    def create_sol_user(self):
         try:
-            project_id = self.generate_admin_auth()
-            if isinstance(project_id, dict):
-                return project_id
+            _, project_id = self.generate_admin_auth()
             user_id = keystone.create_user(self.keystone_client, constants.HYPERVISOR_SOLUSER_NAME,
                                            constants.HYPERVISOR_SOLUSER_PASSWORD,
                                            constants.HYPERVISOR_SOLUSER_EMAIL,
@@ -38,8 +37,7 @@ class Openstack(sol_adapter.SolAadapter):
             return {constants.ERROR_MESSAGE: e.message}
 
     def generate_admin_auth(self):
-        unscoped_auth = keystone.unscoped_login(self.protocol, self.host, self.port, self.username, self.password)
-        projects = keystone.list_projects(unscoped_auth['client'])
+        projects, unscoped_auth = self.get_projects_using_unscoped_login(self)
         project_id = None
         token = None
         for project in projects:
@@ -56,6 +54,15 @@ class Openstack(sol_adapter.SolAadapter):
 
         return token, project_id
 
+    def get_projects_using_unscoped_login(self):
+        unscoped_auth = keystone.unscoped_login(self.protocol, self.host, self.port, self.username, self.password)
+        api_projects = keystone.list_projects(unscoped_auth['client'])
+        projects = []
+        for project in api_projects:
+            projects.append({'id': project.id,
+                             'name': project.name})
+        return projects, unscoped_auth
+
     def get_all_projects(self):
         projects_response = keystone.list_projects(self.keystone_client, False)
         projects = []
@@ -71,3 +78,9 @@ class Openstack(sol_adapter.SolAadapter):
 
     def delete_project(self, project_id):
         keystone.delete_project(self.keystone_client, project_id)
+
+    def load_keystone_client(self):
+        self.keystone_client = None
+
+    def load_nova_client(self):
+        self.nova_client = None

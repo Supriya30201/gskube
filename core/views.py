@@ -51,6 +51,7 @@ def login(request):
             user = auth_resp[constants.SOL_USER]
             name = user.full_name.split()
             request.session[constants.USER_FIRST_NAME] = name[0]
+            request.session[constants.USER_HYPERVISORS] = db_service.get_hypervisor_of_user(username)
 
         return load_dashboard(request)
 
@@ -273,8 +274,10 @@ def create_hypervisor(request):
     username = request.POST['username']
     password = request.POST['password']
 
-    adapter = factory.get_adapter(hypervisor_type)
-    user_detail = adapter.create_sol_user(protocol, host, port, domain, username, password)
+    adapter = factory.get_adapter(hypervisor_type, {constants.PROTOCOL: protocol, constants.HOST: host,
+                                                    constants.PORT: port, constants.DOMAIN: domain,
+                                                    'username': username, 'password': password})
+    user_detail = adapter.create_sol_user()
 
     if constants.ERROR_MESSAGE in user_detail:
         return hypervisor_management(request, error_message=user_detail[constants.ERROR_MESSAGE])
