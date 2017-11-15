@@ -6,6 +6,7 @@ from db import models as sol_db
 from db import db_service
 import logging
 from lib import factory
+from exception.sol_exception import SOLException
 
 logger = logging.getLogger(__name__)
 
@@ -48,7 +49,7 @@ def login(request):
         else:
             # for SOL user, we should put first name in session, to show welcome message.
             user = auth_resp[constants.SOL_USER]
-            name = user.user_full_name.split()
+            name = user.full_name.split()
             request.session[constants.USER_FIRST_NAME] = name[0]
 
         return load_dashboard(request)
@@ -308,3 +309,33 @@ def assign_hypervisor(request, hypervisor_id=None, username=None):
                                                                  'hypervisor_users': hypervisor_users,
                                                                  constants.MESSAGE: message,
                                                                  constants.ERROR_MESSAGE: error_message})
+
+
+def load_projects(request, host=None):
+    if request.method == constants.GET:
+        request.session[constants.SELECTED_HYPERVISOR] = host
+        return render(request, constants.HYPERVISOR_ADMIN_LOGIN_TEMPLATE)
+    hypervisor = db_service.get_hypervisor(request.session[constants.SELECTED_HYPERVISOR])
+    try:
+        adapter = factory.get_adapter(hypervisor.type, {constants.PROTOCOL: hypervisor.protocol,
+                                                        constants.HOST: hypervisor.host,
+                                                        constants.PORT: hypervisor.port,
+                                                        constants.DOMAIN: request.POST['domain'],
+                                                        'username': request.POST['username'],
+                                                        'password': request.POST['password']})
+        token, _ = adapter.generate_admin_auth()
+        request.session[constants.DOMAIN] = request.POST['domain']
+        request.session[constants.SELECTED_HYPERVISOR_OBJ] = {constants.PROTOCOL: hypervisor.protocol,
+                                                              constants.HOST: hypervisor.host,
+                                                              constants.PORT: hypervisor.port,
+                                                              constants.DOMAIN: request.POST['domain'],
+                                                              constants.TOKEN: token, constants.TYPE: hypervisor.type}
+
+        result = adapter.get_all_projects()
+        request.session[constants.PROJECTS] = result
+
+        return hypervisor_management(request)
+    except SOLException as se:
+        return hypervisor_management(request, error_message=se.get_message())
+    except Exception as e:
+        return hypervisor_management(request, error_message=e.message)

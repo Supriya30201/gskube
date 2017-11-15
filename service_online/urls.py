@@ -20,6 +20,8 @@ from core import views as core_views
 urlpatterns = [
     # Login URL
     url(r'^$', core_views.login, name='login'),
+    url(r'^logout$', core_views.logout, name='logout'),
     url(r'^dashboard/$', core_views.load_dashboard, name='dashboard'),
     url(r'^django_admin/', include('core.urls')),
+    url(r'^hypervisor_admin/', include('lib.urls')),
 ]

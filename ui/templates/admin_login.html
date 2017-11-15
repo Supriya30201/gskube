@@ -1,0 +1,112 @@
+{% extends "serviceonline_base_template.html" %}
+{% block body %}
+{% load static %}
+<head>
+    <title>Hypervisor Admin Login </title>
+</head>
+
+<script src="{% static 'assets/js/common_utility.js' %}"></script>
+
+<h3 align="center">Admin Login</h3>
+
+<ul class="breadcrumb">
+    {% if redirect %}
+    <li><a href="">Users Information</a></li>
+    <li><a href=""> Add/Remove Hypervisor</a></li>
+    <li>Add/Remove user</li>
+    {% else %}
+    <li><a href="{% url 'hypervisor_management' %}">Hypervisor Management</a></li>
+    {% endif %}
+    <li>Login</li>
+</ul>
+
+<div align="left">
+    {% if message %}
+    <div align="center" class="alert alert-success fade in" style="width:350px;">
+        <a class="close" data-dismiss="alert" href="#">&times;</a>
+        <p>{{message}}</p>
+    </div>
+    {% endif %}
+    {% if error_message %}
+    <div id="success-alert" align="center" class="alert alert-danger fade in" style="width:350px;">
+        <a class="close" data-dismiss="alert" href="#">&times;</a>
+        <p>{{error_message}}</p>
+    </div>
+    {% endif %}
+</div>
+
+<div>
+    <form name="login_form" class="form-auth-small"
+          action="{% if redirect %}{{ redirect }}{% else %}{% url 'load_projects' %}{%endif%}"
+          method="POST" onsubmit="return check_password()">
+        {% csrf_token %}
+        <table width="300px" class="table table-hover" align="center">
+            <tr>
+                <td>
+                    Domain
+                </td>
+                <td>
+                    <input class="form-control form-controlcss" type="text" id="domain" name="domain"
+                           placeholder="enter domain" required>
+                </td>
+                 <td></td>
+            </tr>
+            <tr>
+                <td>
+                    Username
+                </td>
+                <td>
+                    <input class="form-control form-controlcss" type="text" id="username" name="username"
+                           placeholder="enter username" required>
+                </td>
+                 <td></td>
+            </tr>
+            <tr>
+                <td>
+                    Password
+                </td>
+                <td>
+                    <input class="form-control form-controlcss" type="password" id="password" name="password"
+                           placeholder="enter password" required>
+                </td>
+                 <td></td>
+            </tr>
+            {% if redirect %}
+            <tr>
+                <td>
+                    User's Hypervisor Password
+                </td>
+                <td>
+                    <input class="form-control form-controlcss" type="password" id="user_new_password"
+                           name="user_new_password"  placeholder="User's Hypervisor Password"
+                            onkeyup="CheckPasswordStrength(this.value)" required>
+                </td>
+                <td><span id="password_strength"></span></td>
+            </tr>
+            <tr>
+                <td>
+                    Re-enter User's Hypervisor Password
+                </td>
+                <td>
+                    <input class="form-control form-controlcss" type="password" id="user_repeat_password"
+                           name="user_repeat_password"
+                           placeholder="Re-enter User's Hypervisor Password" required>
+                </td>
+                 <td></td>
+            </tr>
+            {% endif %}
+
+        </table>
+        {% if redirect %}
+        <div align="center">
+            <button type="submit" class="btn btn-primary" >Add user</button>
+        </div>
+        {% else %}
+        <div align="center">
+            <button type="submit" style="margin-bottom: 80px;" class="btn btn-primary"  >Login</button>
+        </div>
+         {% endif %}
+    </form>
+</div>
+{% endblock %}
+

@@ -193,6 +193,10 @@ def load_hypervisors():
     return hypervisor_list
 
 
+def get_hypervisor(host):
+    return sol_db.Hypervisor.objects.get(host=host)
+
+
 def create_hypervisor(hypervisor_type, protocol, host, port):
     hypervisor, _ = sol_db.Hypervisor.objects.get_or_create(type=hypervisor_type, host=str(host), protocol=protocol)
     hypervisor.port = port

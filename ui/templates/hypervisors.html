@@ -106,12 +106,24 @@ $(document).ready( function() {
 });
 
     function project_select_action(select_box){
-        document.hypervisor_management.action = "";
-        document.hypervisor_management.method = "post";
-        document.hypervisor_management.submit();
+        var action_box = document.hypervisor_management.project_action;
+        if(select_box.value == "--select--")
+        {
+            action_box.disabled = true;
+            return;
+        }
+        else if(select_box.value == "django_admin_create_project")
+        {
+            document.hypervisor_management.action = "{% url 'create_project' %}";
+            document.hypervisor_management.method = "get";
+            document.hypervisor_management.submit();
+        }
+
+        action_box.disabled = false;
+
     }
 
-    function selected_action(select_box){
+    function selected_project_action(select_box){
         if(select_box.options[select_box.selectedIndex].text=="Delete Project"){
             if(!confirm("Are you sure you want to delete project \'{{ request.session.selected_project }}\' ?")){
                 select_box.selectedIndex = 0;
@@ -120,7 +132,7 @@ $(document).ready( function() {
         }
         if(select_box.value=="--select--")
             return;
-        document.hypervisor_management.action = select_box.value;
+        document.hypervisor_management.action = select_box.value + document.hypervisor_management.select_project.value + "/";
         document.hypervisor_management.method = "get";
         document.hypervisor_management.submit();
     }
@@ -172,8 +184,6 @@ $(document).ready( function() {
                 <th>Host</th>
                 {% if request.session.projects %}
                 <th>Projects</th>
-                {% endif %}
-                {% if request.session.selected_project %}
                 <th>Actions</th>
                 {% endif %}
                 <th>Port</th>
@@ -186,45 +196,33 @@ $(document).ready( function() {
 
             {% for hypervisor in hypervisors %}
             <tr>
-                <td><a href="">{{ hypervisor.host }}</a></td>
-                {% if request.session.projects %}
+                <td><a href="{% url 'hypervisor_login' host=hypervisor.host%}">{{ hypervisor.host }}</a></td>
+                {% if request.session.projects and hypervisor.host == request.session.selected_hypervisor %}
                 <td>
-                    {% if hypervisor.host == request.session.selected_openstack %}
                     <select name="select_project" onchange="project_select_action(this)">
                         <option value="--select--">--select--</option>
                         <option value="django_admin_create_project">--create-project--</option>
                         {% for project in request.session.projects %}
-                        <option value="{{project.name}}"
+                        <option value="{{project.id}}"
                             {% if request.session.selected_project and request.session.selected_project == project.name %} selected {% endif %}
                         >{{project.name}}</option>
                         {% endfor %}
 
                     </select>
-                    {% else %}
-                    -
-                    {% endif %}
                 </td>
-                {% endif %}
-
-                {% if request.session.selected_project %}
                 <td>
-                    {% if hypervisor.host == request.session.selected_openstack %}
-                    <select name="project_action" onchange="selected_action(this)">
+                    <select name="project_action" onchange="selected_project_action(this)" disabled>
                         <option value="--select--">--select--</option>
-                        <option value="{% url 'view_quota' request.session.selected_project_id %}">Modify Quotas</option>
-                        <option value="{% url 'check_user_in_project' request.session.selected_project_id %}">Project Members</option>
-                        <option value="{% url 'particular_project_details' project_id=request.session.selected_project_id edit=1 %}">Edit project</option>
-                        <option value="{% url 'return_projectid' request.session.selected_project_id %}">View usage</option>
-                        <option value="{% url 'particular_project_details' project_id=request.session.selected_project_id edit=0 %}">Details of project</option>
-                        <option value="{% url 'delete_project' request.session.selected_project_id %}">Delete Project</option>
+                        <option value="">Modify Quotas</option>
+                        <option value="">Project Members</option>
+                        <option value="">Edit project</option>
+                        <option value="{% url 'delete_project'%}">Delete Project</option>
                     </select>
-                    {% else %}
-                    -
-                    {% endif %}
                 </td>
-
+                {% else %}
+                <td> - </td>
+                <td> - </td>
                 {% endif %}
-
                 <td>{{ hypervisor.port }}</td>
                 <td>{{ hypervisor.type }}</td>
                 <td>{{ hypervisor.protocol }}</td>

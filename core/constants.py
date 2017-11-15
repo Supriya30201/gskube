@@ -1,6 +1,13 @@
 GET = "GET"
 POST = "POST"
 
+TYPE = "type"
+PROTOCOL = "protocol"
+HOST = "host"
+PORT = "port"
+DOMAIN = "domain"
+TOKEN = "token"
+ADAPTER = "sol_adapter"
 DJANGO_USER = "django_user"
 SOL_USER = "sol_user"
 IS_DJANGO_ADMIN = "is_django_admin"
@@ -8,7 +15,10 @@ USER_FIRST_NAME = "user_first_name"
 AUTH = "auth"
 MESSAGE = "message"
 ERROR_MESSAGE = "error_message"
-
+PROJECTS = "projects"
+SELECTED_HYPERVISOR_OBJ = "selected_hypervisor_obj"
+SELECTED_HYPERVISOR = "selected_hypervisor"
+SELECTED_PROJECT = "selected_project"
 
 # Hypervisor Bot User
 HYPERVISOR_SOLUSER_NAME = "SOLUSER"
@@ -59,5 +69,7 @@ OPENVPN_TEMPLATE = "openvpn_configuration.html"
 HYPERVISORS_TEMPLATE = "hypervisors.html"
 CREATE_HYPERVISOR_TEMPLATE = "create_hypervisor.html"
 HYPERVISOR_USERS_TEMPLATE = "hypervisor_users.html"
+HYPERVISOR_ADMIN_LOGIN_TEMPLATE = "admin_login.html"
+CREATE_PROJECT_TEMPLATE = "create_project.html"
 
 

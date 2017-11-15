@@ -2,6 +2,7 @@ from keystoneauth1.identity import v2
 from keystoneauth1 import session as keystone_session
 from keystoneclient.v2_0 import client as v2_client
 from exception.openstack_exception import OpenstackException
+from exception.openstack_session_exception import OpenstackSessionException
 from keystoneclient.v3 import client as v3_client
 from keystoneclient.auth.identity import v3
 
@@ -27,15 +28,28 @@ def scoped_login_v3(protocol, host, port, token, project_id):
         auth = v3.Token(auth_url=url, token=token, project_id=project_id)
         session = keystone_session.Session(auth=auth)
         connection = v3_client.Client(session=session)
-        return {'client': connection, 'session': session}
+        token = connection.session.get_token(auth)
+        return {'client': connection, 'token': token}
     except Exception as e:
         raise OpenstackException("Exception while performing scoped login : " + e.message, exception=e)
 
 
-# List projects using v2 unscoped token
-def list_projects(client):
+def get_client(protocol, host, port, token):
     try:
-        projects_list = client.tenants.list()
+        url = protocol + "://" + host + ":" + port + "/v3"
+        connection = v3_client.Client(endpoint=url, token=token)
+        return connection
+    except Exception as e:
+        raise OpenstackSessionException(message="Exception while requesting client : " + e.message, exception=e)
+
+
+# List projects using v2 unscoped token
+def list_projects(client, v2_api=True):
+    try:
+        if v2_api:
+            projects_list = client.tenants.list()
+        else:
+            projects_list = client.projects.list()
         return projects_list
     except Exception as e:
         raise OpenstackException(message="Exception while getting list of projects : " + e.message, exception=e)
@@ -96,3 +110,30 @@ def remove_user_role(client, user_id, roles, project_id):
             client.roles.revoke(role=role, user=user_id, project=project_id)
     except Exception as e:
         raise OpenstackException(message="Exception while removing roles of user: " + e.message, exception=e)
+
+
+def create_project(client, domain, project_name, description, project_id=None):
+    """
+    If project_id is passed, method will update project.
+    :param client:
+    :param domain:
+    :param project_name:
+    :param description:
+    :param project_id:
+    :return:
+    """
+    try:
+        if project_id:
+            client.projects.update(project=project_id, name=project_name, description=description)
+        else:
+            client.projects.create(name=project_name, domain=domain, description=description)
+
+    except Exception as e:
+        raise OpenstackException(message="Exception while creating project : " + e.message, exception=e)
+
+
+def delete_project(client, project_id):
+    try:
+        client.projects.delete(project=project_id)
+    except Exception as e:
+        raise OpenstackException(message="Exception while deleting project : " + e.message, exception=e)

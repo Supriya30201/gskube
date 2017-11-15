@@ -23,6 +23,10 @@ urlpatterns = [
             url(r'^(?P<username>[\w\d-]+)/$', views.assign_hypervisor, name="remove_hypervisor_user")
         ])),
     ])),
+    url(r'^load_projects/', include([
+        url(r'^$', views.load_projects, name='load_projects'),
+        url(r'^(?P<host>[\w\d.]+)/$', views.load_projects, name='hypervisor_login')
+    ])),
 
 
 ]

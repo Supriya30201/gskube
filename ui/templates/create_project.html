@@ -1,0 +1,46 @@
+{% extends "serviceonline_base_template.html" %}
+
+{% block body %}
+
+<style>
+    .table-hover tbody tr:hover td {
+    background: #e4e4e4;
+}
+
+</style>
+
+
+<div class="container"><h3 align="center">Create/Update Project</h3>
+    <hr/>
+    <ul class="breadcrumb">
+        {% if request.session.is_django_admin %}
+        <li><a href="{% url 'hypervisor_management'%}">Hypervisor Management</a></li>
+        {% else %}
+        <li><a href="">Project Management</a></li>
+        {% endif %}
+        <li>Create Project</li>
+    </ul>
+    <form method="post" action="{% url 'create_project' %}">
+        {% csrf_token %}
+
+
+        <table class="table table-hover" style="width:75% !important;" align="center">
+            <tr>
+                <td><label>Project Name : </label></td>
+                <td><input class="form-control" type="text" name="name" placeholder="Project Name" required></td>
+            </tr>
+            <tr>
+                <td><label>Description :</label></td>
+                <td><input class="form-control" type="text-area" name="description" placeholder="Project Description" required>
+                </td>
+            </tr>
+
+
+        </table>
+        <div align="center">
+            <button class="btn btn-primary" type="submit" name="create">Save</button>
+        </div>
+    </form>
+</div>
+
+{% endblock %}
