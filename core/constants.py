@@ -7,11 +7,14 @@ HOST = "host"
 PORT = "port"
 DOMAIN = "domain"
 PASSWORD = "password"
+PROJECT_ID = "project_id"
 TOKEN = "token"
 ADAPTER = "sol_adapter"
 DJANGO_USER = "django_user"
 SOL_USER = "sol_user"
 IS_DJANGO_ADMIN = "is_django_admin"
+IS_ADMIN = "is_admin"
+ENDPOINT_URLS = "endpoint_urls"
 USER_FIRST_NAME = "user_first_name"
 AUTH = "auth"
 MESSAGE = "message"
@@ -28,6 +31,10 @@ HYPERVISOR_SOLUSER_PASSWORD = "gsLab@123"
 HYPERVISOR_SOLUSER_EMAIL = "soluser@gslab.com"
 HYPERVISOR_SOLUSER_DESCRIPTION = "Bot user to generate report and delete VM"
 
+
+# Hypervisor Preference
+HYPERVISOR_PREFERENCE_SELECTED_HOST = "hypervisor_preference_selected_host"
+HYPERVISOR_PREFERENCE_PROJECTS = "hypervisor_preference_projects"
 
 # AD Related Constants
 AUTH_AD_HOST = "auth_ad_host"
@@ -54,10 +61,46 @@ OPENVPN_TEMP_FOLDER_LOCATION = "openvpn_temp_folder_location"
 
 
 # User Constants
+USER = "user"
 USERNAME = "username"
 USER_FULL_NAME = "user_full_name"
 USER_EMAIL = "user_email"
 USER_PASSWORD = "user_password"
+
+
+# Glance Constants
+IMAGES = "images"
+IMAGE_ID = "image_id"
+IMAGE_NAME = "image_name"
+IMAGE_SIZE = "image_size"
+IMAGE_STATUS = "image_status"
+
+
+# Neutron Constants
+NETWORKS = "networks"
+NETWORK_ID = "network_id"
+NETWORK_NAME = "network_name"
+NETWORK_STATUS = "network_status"
+
+
+# Flavor Constants
+FLAVORS = "flavors"
+FLAVOR_ID = "flavor_id"
+FLAVOR_NAME = "flavor_name"
+FLAVOR_VCPU = "flavor_vcpu"
+FLAVOR_RAM = "flavor_ram"
+FLAVOR_DISK = "flavor_disk"
+
+
+# Server Constants
+INSTANCES = "instances"
+INSTANCE_ID = "instance_id"
+INSTANCE_NAME = "instance_name"
+INSTANCE_STATUS = "instance_status"
+INSTANCE_FLAVOR = "instance_flavors"
+INSTANCE_IPS = "instance_ips"
+INSTANCE_IMAGE = "instance_image"
+
 
 
 # Templates
@@ -73,5 +116,7 @@ CREATE_HYPERVISOR_TEMPLATE = "create_hypervisor.html"
 HYPERVISOR_USERS_TEMPLATE = "hypervisor_users.html"
 HYPERVISOR_ADMIN_LOGIN_TEMPLATE = "admin_login.html"
 CREATE_PROJECT_TEMPLATE = "create_project.html"
-
+INSTANCES_TEMPLATE = "instances.html"
+CREATE_INSTANCE_TEMPLATE = "create_instance.html"
+HYPERVISOR_PREFERENCE_TEMPLATE = "hypervisor_preference.html"
 

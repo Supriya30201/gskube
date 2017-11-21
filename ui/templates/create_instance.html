@@ -1,0 +1,124 @@
+{% extends "serviceonline_base_template.html" %}
+
+<style>
+		#button1 {
+		    left: 300px;
+		    top: 500px;
+		}
+
+    	.table-hover tbody tr:hover td {
+    		background: #e4e4e4;
+		}
+
+</style>
+
+
+{% block body %}
+
+<body>
+
+
+<div class="container col-md-12"><h3 align="center">Server Information</h3>
+
+    <ul class="breadcrumb">
+        {% if flag %}
+         <li><a href="">Server Requests</a></li>
+         <li>Modify Instance</li>
+        {% else %}
+        <li><a href="{% url 'manage_instances'%}">Instance Management</a></li>
+        <li>Create Instance</li>
+        {% endif %}
+    </ul>
+
+    <form name="create_server_form" method="POST" action="{% url 'save_instance_request' %}" align="left">
+        <input type="hidden" name="extend" value="{% if extend %}True{% else %}False{% endif %}"/>
+        <table class="table table-hover" align="left">
+
+            <input type="hidden" name="request_id" value="{{ instance.id }}">
+            {% csrf_token %}
+            <tbody>
+            <tr>
+                <td><label>Instance Name : </label></td>
+                <td><input class="form-control" type="text" placeholder="Enter instance name" name="server_name"
+                           id="server_name" value="{{ instance.instance_name }}" size="10" required {% if extend %} readonly
+                           {% endif %}/></td>
+            </tr>
+            {% if not extend %}
+            <tr>
+                <td><label>Image : </label></td>
+                <td><select name="image">
+                    {% for image in request.session.images %}
+                    <option value="{{ image.image_id }}"
+                            {% if instance.image.image_id == image.image_id %}
+                            selected
+                            {% endif %}
+                    >{{ image.image_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label>Flavor : </label></td>
+                <td><select name="flavor">
+                    {% for flavor in request.session.flavors %}
+                    <option value="{{ flavor.flavor_id }}"
+                            {% if instance.flavor.flavor_id == flavor.flavor_id %}
+                            selected
+                            {% endif %}
+                    >{{ flavor.flavor_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                </td>
+            </tr>
+            <tr>
+                <td><label>Network : </label></td>
+                <td><select name="network">
+                    {% for network in request.session.networks %}
+                    <option value="{{ network.network_id }}"
+                            {% if instance.network.network_id == network.network_id %}
+                            selected
+                            {% endif %}
+                    >{{ network.network_name }}
+                    </option>
+                    {% endfor %}
+                </select>
+                </td>
+            </tr>
+            {% endif %}
+            <tr>
+                <td><label>Date Of Expiry : </label></td>
+                <td>
+                    <input class="form-control" type="text" placeholder="YYYY-MM-DD" name="date"
+                           value="{{ instance.date_of_expiry|date:'Y-m-d'}}" date-date-format="YYYY-MM-DD" id="datepicker" size="10" required/>
+                </td>
+            </tr>
+            </br>
+
+            </tbody>
+        </table>
+        <div align="center">
+            <button align="center" style="margin-bottom: 80px;" id="submit_button" type="submit" class="btn btn-primary">{{button_name}}
+            </button>
+        </div>
+    </form>
+
+
+</div>
+
+
+</body>
+
+<script >
+var dateToday = new Date();
+var dates = $("#datepicker").datepicker({
+    defaultDate: "+1w",
+       dateFormat: 'yy-mm-dd',
+    minDate: dateToday
+});
+</script>
+{% endblock %}
+
+
+

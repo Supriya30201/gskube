@@ -5,6 +5,8 @@ from exception.openstack_exception import OpenstackException
 from exception.openstack_session_exception import OpenstackSessionException
 from keystoneclient.v3 import client as v3_client
 from keystoneclient.auth.identity import v3
+from keystoneclient.v3.services import Service
+from keystoneclient.v3.endpoints import Endpoint
 
 
 # Unscoped Token using v2
@@ -28,8 +30,19 @@ def scoped_login_v3(protocol, host, port, token, project_id):
         auth = v3.Token(auth_url=url, token=token, project_id=project_id)
         session = keystone_session.Session(auth=auth)
         connection = v3_client.Client(session=session)
+        services = connection.services.list()
+        endpoints = connection.endpoints.list(interface="public")
+        endpoint_urls = []
+        for service in services:
+            for endpoint in endpoints:
+                if endpoint.service_id == service.id:
+                    endpoint_urls.append({
+                        "endpoint_name": str(service.name),
+                        "endpoint_url": str(endpoint.url)
+                    })
+                    break;
         token = connection.session.get_token(auth)
-        return {'client': connection, 'token': token}
+        return {'client': connection, 'token': token, 'endpoint_urls': endpoint_urls}
     except Exception as e:
         raise OpenstackException("Exception while performing scoped login : " + e.message, exception=e)
 
@@ -137,3 +150,4 @@ def delete_project(client, project_id):
         client.projects.delete(project=project_id)
     except Exception as e:
         raise OpenstackException(message="Exception while deleting project : " + e.message, exception=e)
+

@@ -60,7 +60,6 @@ class Instance(models.Model):
     """
         Instance model will store details of each instance created using SOL.
     """
-    hypervisor = models.ForeignKey(Hypervisor, on_delete=models.DO_NOTHING, null=True)
     user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
     project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)
     instance_name = models.CharField(max_length=255)
@@ -70,7 +69,8 @@ class Instance(models.Model):
     doe = models.DateField()
     flavor = models.CharField(max_length=255)
     network = models.CharField(max_length=255)
-    requested = models.BooleanField()
+    image = models.CharField(max_length=255)
+    requested = models.BooleanField(default=False)
 
 
 class HypervisorUser(models.Model):

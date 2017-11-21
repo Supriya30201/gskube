@@ -1,0 +1,157 @@
+{% extends "serviceonline_base_template.html" %}
+{% block body %}
+<br><br>
+{% load static %}
+<head>
+    <style>
+        #mytable_length,
+        #mytable_info{
+            float:left;
+            margin-left:5px;
+        }
+
+        #mytable_filter,
+        #mytable_paginate{
+            float:right;
+            margin-right:5px;
+        }
+
+    </style>
+</head>
+<h3 align="center">Instance Management</h3>
+
+
+<div class="row">
+<div class="col-md-6">
+
+    <div id="server_display" align="center">
+
+
+    <div align="left">
+    {% if message %}
+        <div align="center" class="alert alert-success fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{message}}</p>
+        </div>
+    {% endif %}
+    {% if error_message %}
+        <div id="success-alert" align="center" class="alert alert-danger fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{error_message}}</p>
+        </div>
+    {% endif %}
+    </div>
+    </div>
+</div>
+    <script>
+        function submit_form(url){
+            document.form1.action = url;
+            document.form1.submit();
+        }
+    </script>
+
+<div class="col-md-6">
+  <div align="right" >
+    <table cellspacing="10" cellpadding="10" class="table table-hover" >
+      <form name="form1"  class="form-horizontal"  method="GET">
+        {% csrf_token %}
+        <tr>
+            <button type="button" name="request_server" class="btn btn-primary" onclick="submit_form('{% url 'create_instance'%}')" >Request server</button>
+            <span class="left-space"> </span>
+            <button type="button" name="extend_expiry" class="btn btn-primary" onclick="submit_form('')">Extend Expiry</button>
+            <span class="left-space"> </span>
+            <button type="button" name="extend_expiry" class="btn btn-primary" onclick="submit_form('{% url 'manage_instances' %}')">Refresh</button>
+        </tr>
+      </form>
+    </table>
+  </div>
+</div>
+</div>
+  <br>
+  <form name="form2" method="post" action="">
+  {% csrf_token %}
+  <input type="hidden" id="mainvalue" name="mainvalue" value="0">
+  <input type="hidden" id="option_selected" name="option_selected" value="0">
+  {% if servers %}
+  <table class="table table-striped table-bordered table-hover display" id="mytable" cellspacing="0" width="100%">
+    <thead class="pbr">
+      <tr>
+        <td><label>#</label></td>
+        <td><label>Server Name</label></td>
+        <td><label>Image Name</label></td>
+        <td><label>Flavor</label></td>
+          <td><label>Key Name</label></td>
+        <td><label>IPV4</label></td>
+        <td><label>IPV6</label></td>
+        <td><label>Status</label></td>
+        <td><label>Action</label></td>
+      </tr>
+    </thead>
+    <tbody>
+      {% for server in servers %}
+      <tr >
+        <td>{{forloop.counter}}</td>
+        <td>{{server.name}}</td>
+        <td>{{server.image}}</td>
+        <td>{{server.flavor}}</td>
+          <td>{{server.key}}</td>
+        <td>
+          {{ server.ipv4 | join:", " }}
+        </td>
+        <td>
+          {{ server.ipv6 | join:", " }}
+        </td>
+
+        <td>{{server.status}}</td>
+
+        <script type="text/javascript">
+          function getValue(value, selectBox){
+
+            if(value == "choose action")
+                return;
+
+            if( (selectBox.options[selectBox.selectedIndex].text)== "delete"){
+                 if (!confirm("Are you sure to delete this instance?")) {
+                    selectBox.selectedIndex = 0;
+                    return;
+                 }
+             }
+
+            if(value.startsWith("/compute")){
+              window.open(value, '_blank');
+              selectBox.selectedIndex = 0;
+              return;
+            }
+
+            document.getElementById('mainvalue').value = value;
+            document.form2.submit();
+          }
+
+        </script>
+        <td>
+
+          <select id="actions" onChange="getValue(this.value, this);" >
+              <option selected>choose action</option>
+              {% if server.status == 'ACTIVE' %}<option  value="" >Console </option>{% endif %}
+              <option value='' >start</option>
+              <option value =''>stop  </option>
+              <option value='' >delete </option>
+              <option value=''>modify </option>
+          </select>
+          </td>
+      </tr>
+      {% endfor %}
+    </tbody>
+  </table>
+  <script>
+    $('#mytable').dataTable();
+  </script>
+  {% else %}
+  There is no VM in the selected project.
+  {% endif %}
+  <br/>
+  </form>
+</div>
+
+
+{% endblock %}

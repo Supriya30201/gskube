@@ -50,7 +50,7 @@ def login(request):
             # for SOL user, we should put first name in session, to show welcome message.
             user = auth_resp[constants.SOL_USER]
             name = user.full_name.split()
-            request.session[constants.USER_FIRST_NAME] = name[0]
+            request.session[constants.USER] = {constants.USERNAME: username, constants.USER_FIRST_NAME: name[0]}
             request.session[constants.USER_HYPERVISORS] = db_service.get_hypervisor_of_user(username)
 
         return load_dashboard(request)

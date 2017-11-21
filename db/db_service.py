@@ -1,6 +1,7 @@
 from . import models as sol_db
 from core import constants
 from core import services
+from time import gmtime, strftime
 
 
 def get_auth_ad():
@@ -253,3 +254,16 @@ def set_hypervisor_user_access(user_name, hypervisor_id, access=True):
     hypervisor_user, _ = sol_db.HypervisorUser.objects.get_or_create(user=user, hypervisor=hypervisor)
     hypervisor_user.has_access = access
     hypervisor_user.save()
+
+
+def save_instance_request(hypervisor, project, user, name, image, network, flavor, doe):
+    db_user = sol_db.User.objects.get(username=user[constants.USERNAME])
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor[constants.HOST])
+    db_project, _ = sol_db.Project.objects.get_or_create(hypervisor=db_hypervisor, project_id=project['id'],
+                                                         name=project['name'])
+    name = hypervisor[constants.HOST] + "_" + project['name'] + "_" + name
+    instance, _ = sol_db.Instance.objects.get_or_create(user=db_user, project=db_project, instance_name=name,
+                                                     doc=strftime('%Y-%m-%d', gmtime()), doe=doe, flavor=flavor,
+                                                     network=network, image=image)
+    instance.requested = True
+    instance.save()

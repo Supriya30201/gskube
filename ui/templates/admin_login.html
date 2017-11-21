@@ -10,7 +10,9 @@
 <h3 align="center">Admin Login</h3>
 
 <ul class="breadcrumb">
-    {% if redirect %}
+    {% if button_name and button_name == "Load Projects" or button_name == "Save"%}
+    <li><a href="{% url 'hypervisor_preference' %}">Hypervisors</a></li>
+    {% elif redirect %}
     <li><a href="">Users Information</a></li>
     <li><a href=""> Add/Remove Hypervisor</a></li>
     <li>Add/Remove user</li>
@@ -71,7 +73,7 @@
                 </td>
                  <td></td>
             </tr>
-            {% if redirect %}
+            {% if create_hypervisor_user %}
             <tr>
                 <td>
                     User's Hypervisor Password
@@ -95,11 +97,25 @@
                  <td></td>
             </tr>
             {% endif %}
+            {% if request.session.hypervisor_preference_projects %}
+                <tr>
+                    <td>
+                        Project
+                    </td>
+                    <td>
+                        <select name="hypervisor_default_project">
+                            {% for project in request.session.hypervisor_preference_projects %}
+                                <option value="{{ project.id }}">{{ project.name }}</option>
+                            {% endfor %}
+                        </select>
+                    </td>
+                </tr>
+            {% endif %}
 
         </table>
-        {% if redirect %}
+        {% if button_name %}
         <div align="center">
-            <button type="submit" class="btn btn-primary" >Add user</button>
+            <button type="submit" class="btn btn-primary" >{{button_name}}</button>
         </div>
         {% else %}
         <div align="center">
