@@ -21,8 +21,8 @@
 <div class="container col-md-12"><h3 align="center">Server Information</h3>
 
     <ul class="breadcrumb">
-        {% if flag %}
-         <li><a href="">Server Requests</a></li>
+        {% if modify %}
+         <li><a href="{% url 'instance_request'%}">Server Requests</a></li>
          <li>Modify Instance</li>
         {% else %}
         <li><a href="{% url 'manage_instances'%}">Instance Management</a></li>
@@ -30,17 +30,19 @@
         {% endif %}
     </ul>
 
-    <form name="create_server_form" method="POST" action="{% url 'save_instance_request' %}" align="left">
-        <input type="hidden" name="extend" value="{% if extend %}True{% else %}False{% endif %}"/>
+    <form name="create_server_form" method="POST" action="{% url 'instance_request' %}" align="left">
+        {% if modify %}
+        <input type="hidden" name="modify" value="True"/>
+        {% endif %}
         <table class="table table-hover" align="left">
 
-            <input type="hidden" name="request_id" value="{{ instance.id }}">
+            <input type="hidden" name="request_id" value="{{ instance.instance_id }}">
             {% csrf_token %}
             <tbody>
             <tr>
                 <td><label>Instance Name : </label></td>
                 <td><input class="form-control" type="text" placeholder="Enter instance name" name="server_name"
-                           id="server_name" value="{{ instance.instance_name }}" size="10" required {% if extend %} readonly
+                           id="server_name" value="{{ instance.name }}" size="10" required {% if extend or modify %} readonly
                            {% endif %}/></td>
             </tr>
             {% if not extend %}
@@ -91,7 +93,7 @@
                 <td><label>Date Of Expiry : </label></td>
                 <td>
                     <input class="form-control" type="text" placeholder="YYYY-MM-DD" name="date"
-                           value="{{ instance.date_of_expiry|date:'Y-m-d'}}" date-date-format="YYYY-MM-DD" id="datepicker" size="10" required/>
+                           value="{{ instance.doe }}" date-date-format="YYYY-MM-DD" id="datepicker" size="10" required/>
                 </td>
             </tr>
             </br>

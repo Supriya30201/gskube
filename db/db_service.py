@@ -261,9 +261,43 @@ def save_instance_request(hypervisor, project, user, name, image, network, flavo
     db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor[constants.HOST])
     db_project, _ = sol_db.Project.objects.get_or_create(hypervisor=db_hypervisor, project_id=project['id'],
                                                          name=project['name'])
-    name = hypervisor[constants.HOST] + "_" + project['name'] + "_" + name
+    name = project['name'] + "_" + user[constants.USERNAME] + "_" + name
     instance, _ = sol_db.Instance.objects.get_or_create(user=db_user, project=db_project, instance_name=name,
                                                      doc=strftime('%Y-%m-%d', gmtime()), doe=doe, flavor=flavor,
                                                      network=network, image=image)
     instance.requested = True
     instance.save()
+
+
+def requested_instances(hypervisor, project):
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor[constants.HOST])
+    db_project = sol_db.Project.objects.filter(hypervisor=db_hypervisor.id, project_id=project['id'])
+    if not db_project:
+        return []
+    db_project = db_project.first()
+    requested_servers = sol_db.Instance.objects.filter(project=db_project, requested=True)
+    if requested_servers:
+        return requested_servers.all()
+
+    return []
+
+
+def remove_instance_request(request_id):
+    instance_request = sol_db.Instance.objects.filter(id=request_id)
+    if instance_request:
+        instance_request.delete()
+
+
+def update_requested_instance(request_id, instance_id=None, image=None, flavor=None, network=None, doe=None):
+    instance_request = sol_db.Instance.objects.filter(id=request_id).first()
+    if instance_id:
+        instance_request.requested = False
+        instance_request.instance_id = instance_id
+    else:
+        instance_request.image = image
+        instance_request.flavor = flavor
+        instance_request.network = network
+        instance_request.doe = doe
+    instance_request.save()
+
+

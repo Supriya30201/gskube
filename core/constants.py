@@ -93,11 +93,12 @@ FLAVOR_DISK = "flavor_disk"
 
 
 # Server Constants
+REQUESTED_INSTANCES = "requested_instances"
 INSTANCES = "instances"
 INSTANCE_ID = "instance_id"
 INSTANCE_NAME = "instance_name"
 INSTANCE_STATUS = "instance_status"
-INSTANCE_FLAVOR = "instance_flavors"
+INSTANCE_FLAVOR = "instance_flavor"
 INSTANCE_IPS = "instance_ips"
 INSTANCE_IMAGE = "instance_image"
 
@@ -119,4 +120,5 @@ CREATE_PROJECT_TEMPLATE = "create_project.html"
 INSTANCES_TEMPLATE = "instances.html"
 CREATE_INSTANCE_TEMPLATE = "create_instance.html"
 HYPERVISOR_PREFERENCE_TEMPLATE = "hypervisor_preference.html"
+REQUESTED_INSTANCES_TEMPLATE = "requested_instances.html"
 

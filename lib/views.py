@@ -127,28 +127,123 @@ def delete_project(request, project_id=None):
 
 
 def manage_instances(request):
-    return render(request, constants.INSTANCES_TEMPLATE)
+    try:
+        hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+        hypervisor[constants.PROJECT_ID] = request.session[constants.SELECTED_PROJECT]['id']
+        adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+        instances = adapter.list_servers(request.session[constants.ENDPOINT_URLS], request.session[constants.TOKEN])
+        return render(request, constants.INSTANCES_TEMPLATE, {constants.INSTANCES: instances})
+    except OpenstackException as oe:
+        return render(request, constants.INSTANCES_TEMPLATE, {constants.ERROR_MESSAGE: oe.get_message()})
+    except Exception as e:
+        return render(request, constants.INSTANCES_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
 
 
-def create_instance(request, instance_id=None):
+def create_instance(request, modify=False):
     if request.method == constants.GET:
         try:
-            hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
-            hypervisor[constants.PROJECT_ID] = request.session[constants.SELECTED_PROJECT]['id']
-            adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
-            request.session[constants.IMAGES] = adapter.get_image_list(request.session[constants.ENDPOINT_URLS],
-                                                                       request.session[constants.TOKEN])
-            request.session[constants.NETWORKS] = adapter.get_network_list(request.session[constants.ENDPOINT_URLS],
-                                                                           request.session[constants.TOKEN])
-            request.session[constants.FLAVORS] = adapter.get_flavor_list()
+            images, networks, flavors = get_image_flavor_network_details(request)
+            request.session[constants.IMAGES] = images
+            request.session[constants.NETWORKS] = networks
+            request.session[constants.FLAVORS] = flavors
         except OpenstackException as oe:
             return render(request, constants.INSTANCES_TEMPLATE, {constants.ERROR_MESSAGE: oe.get_message()})
         except Exception as e:
             return render(request, constants.INSTANCES_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
         return render(request, constants.CREATE_INSTANCE_TEMPLATE, {'button_name': 'Request Server'})
 
+    instance_id = request.POST['request_id']
+    request_type = request.POST['request_type'] if 'request_type' in request.POST else None
+    if request_type == "approve" or modify:
+        try:
+            instance = get_instance(request, instance_id)
+            hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+            hypervisor[constants.PROJECT_ID] = request.session[constants.SELECTED_PROJECT]['id']
+            adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+            server_id = adapter.create_server(instance['name'], instance['image_id'], instance['flavor_id'],
+                                              instance['network_id'])
+            db_service.update_requested_instance(request_id=instance_id, instance_id=server_id)
+            return instance_request(request, load_instance=True, message="Requested instance created successfully.")
+        except OpenstackException as oe:
+            return instance_request(request, load_instance=True, error_message=oe.get_message())
+        except Exception as e:
+            return instance_request(request, load_instance=True, error_message=e.message)
+    elif request_type == "reject":
+        db_service.remove_instance_request(instance_id)
+        return instance_request(request, load_instance=True, message="Request rejected successfully.")
+    else:
+        instance = get_instance(request, instance_id)
+        return render(request, constants.CREATE_INSTANCE_TEMPLATE, {'instance': instance, 'modify': True, 'button_name': 'Modify & Approve'})
 
-def save_instance_request(request):
+
+def get_instance(request, instance_id):
+    instances = request.session[constants.REQUESTED_INSTANCES]
+    for instance in instances:
+        if int(instance['instance_id']) == int(instance_id):
+            return instance
+
+
+def get_image_flavor_network_details(request):
+    hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+    hypervisor[constants.PROJECT_ID] = request.session[constants.SELECTED_PROJECT]['id']
+    adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+    images = adapter.get_image_list(request.session[constants.ENDPOINT_URLS], request.session[constants.TOKEN])
+    networks = adapter.get_network_list(request.session[constants.ENDPOINT_URLS], request.session[constants.TOKEN])
+    flavors = adapter.get_flavor_list()
+    return images, networks, flavors
+
+
+def instance_request(request, load_instance=False, message=None, error_message=None):
+    if request.method == constants.GET or load_instance:
+        instances = db_service.requested_instances(request.session[constants.SELECTED_HYPERVISOR_OBJ],
+                                                   request.session[constants.SELECTED_PROJECT])
+        instance_list = []
+        if instances:
+            images, networks, flavors = get_image_flavor_network_details(request)
+            request.session[constants.IMAGES] = images
+            request.session[constants.FLAVORS] = flavors
+            request.session[constants.NETWORKS] = networks
+            for instance in instances:
+                instance_image = None
+                for image in images:
+                    if image[constants.IMAGE_ID] == instance.image:
+                        instance_image = image[constants.IMAGE_NAME]
+                        break
+                instance_network = None
+                for network in networks:
+                    if network[constants.NETWORK_ID] == instance.network:
+                        instance_network = network[constants.NETWORK_NAME]
+                        break
+
+                instance_flavor = None
+                for flavor in flavors:
+                    if flavor[constants.FLAVOR_ID] == instance.flavor:
+                        instance_flavor = flavor[constants.FLAVOR_NAME]
+                        break
+
+                instance_list.append({
+                    'instance_id': instance.id,
+                    'name': instance.instance_name,
+                    'flavor_id': instance.flavor,
+                    'flavor_name': instance_flavor,
+                    'network_id': instance.network,
+                    'network_name': instance_network,
+                    'image_id': instance.image,
+                    'image_name': instance_image,
+                    'username': instance.user.username,
+                    'user_f_name': instance.user.full_name,
+                    'doe': instance.doe.isoformat()
+                })
+        request.session[constants.REQUESTED_INSTANCES] = instance_list
+        return render(request, constants.REQUESTED_INSTANCES_TEMPLATE, {constants.MESSAGE: message,
+                                                                        constants.ERROR_MESSAGE: error_message})
+
+    if 'modify' in request.POST:
+        db_service.update_requested_instance(request_id=request.POST['request_id'], image=request.POST['image'],
+                                             network=request.POST['network'], flavor=request.POST['flavor'],
+                                             doe=request.POST['date'])
+        return create_instance(request, modify=True)
+
     db_service.save_instance_request(request.session[constants.SELECTED_HYPERVISOR_OBJ],
                                      request.session[constants.SELECTED_PROJECT], request.session[constants.USER],
                                      request.POST['server_name'], request.POST['image'], request.POST['network'],

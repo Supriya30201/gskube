@@ -16,9 +16,9 @@ def network_list(client):
         networks_list = []
         for network in networks:
             networks_list.append({
-                constants.NETWORK_ID: network['id'],
-                constants.NETWORK_NAME: network['name'],
-                constants.NETWORK_STATUS: network['status'],
+                constants.NETWORK_ID: str(network['id']),
+                constants.NETWORK_NAME: str(network['name']),
+                constants.NETWORK_STATUS: str(network['status']),
             })
         return networks_list
     except Exception as e:

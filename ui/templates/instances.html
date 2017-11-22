@@ -72,37 +72,30 @@
   {% csrf_token %}
   <input type="hidden" id="mainvalue" name="mainvalue" value="0">
   <input type="hidden" id="option_selected" name="option_selected" value="0">
-  {% if servers %}
+  {% if instances %}
   <table class="table table-striped table-bordered table-hover display" id="mytable" cellspacing="0" width="100%">
     <thead class="pbr">
       <tr>
         <td><label>#</label></td>
-        <td><label>Server Name</label></td>
-        <td><label>Image Name</label></td>
+        <td><label>Name</label></td>
+        <td><label>Image</label></td>
         <td><label>Flavor</label></td>
-          <td><label>Key Name</label></td>
-        <td><label>IPV4</label></td>
-        <td><label>IPV6</label></td>
+        <td><label>IP</label></td>
         <td><label>Status</label></td>
         <td><label>Action</label></td>
       </tr>
     </thead>
     <tbody>
-      {% for server in servers %}
+      {% for instance in instances %}
       <tr >
         <td>{{forloop.counter}}</td>
-        <td>{{server.name}}</td>
-        <td>{{server.image}}</td>
-        <td>{{server.flavor}}</td>
-          <td>{{server.key}}</td>
+        <td>{{instance.instance_name}}</td>
+        <td>{{instance.instance_image.image_name}}</td>
+        <td>{{instance.instance_flavor.flavor_name}}</td>
         <td>
-          {{ server.ipv4 | join:", " }}
+          {{ instance.instance_ips | join:", " }}
         </td>
-        <td>
-          {{ server.ipv6 | join:", " }}
-        </td>
-
-        <td>{{server.status}}</td>
+        <td>{{instance.instance_status}}</td>
 
         <script type="text/javascript">
           function getValue(value, selectBox){
@@ -132,7 +125,7 @@
 
           <select id="actions" onChange="getValue(this.value, this);" >
               <option selected>choose action</option>
-              {% if server.status == 'ACTIVE' %}<option  value="" >Console </option>{% endif %}
+              {% if instance.status == 'ACTIVE' %}<option  value="" >Console </option>{% endif %}
               <option value='' >start</option>
               <option value =''>stop  </option>
               <option value='' >delete </option>

@@ -15,7 +15,8 @@ def get_nova_connection(protocol, host, port, domain, username, password, projec
         raise OpenstackException(message=e.message, exception=e)
 
 
-def list_servers(nova_client, flavors, images):
+def list_servers(nova_client, images):
+    flavors = list_flavors(nova_client)
     try:
         servers = nova_client.servers.list()
         servers_list = []
@@ -30,7 +31,7 @@ def list_servers(nova_client, flavors, images):
                 if image[constants.IMAGE_ID] == server.image['id']:
                     server_image = image
                     break
-            server_ips = load_server_ips(novaClient=nova_client, server=server.id)
+            server_ips = load_server_ips(nova_client, server.id)
             servers_list.append({
                 constants.INSTANCE_ID: server.id,
                 constants.INSTANCE_NAME: server.name,
@@ -69,3 +70,12 @@ def list_flavors(nova_client):
         return flavors_list
     except Exception as e:
         raise OpenstackException(message=e.message, exception=e)
+
+
+def create_server(nova_client, server_name, image_id, flavor_id, network_id):
+    try:
+        server = nova_client.servers.create(name=server_name, image=image_id, flavor=flavor_id, nics=[{'net-id': network_id}])
+        return server.id
+    except Exception as e:
+        logger.error("Exception while creating server : " + e.message)
+        raise OpenstackException(message="Exception while creating server : " + e.message, exception=e)

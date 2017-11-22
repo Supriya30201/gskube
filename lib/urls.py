@@ -19,5 +19,5 @@ urlpatterns = [
         url(r'^$', views.hypervisor_preference_change, name="hypervisor_preference_change"),
         url(r'^(?P<host>[\w\d._-]+)/$', views.hypervisor_preference_change, name="hypervisor_preference_host")
     ])),
-    url(r'save_instance_request/$', views.save_instance_request, name="save_instance_request")
+    url(r'instance_request/$', views.instance_request, name="instance_request"),
 ]

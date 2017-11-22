@@ -325,7 +325,7 @@
 
                         {% csrf_token %} {% if request.session.is_admin %}
                         <li>
-                            <a href=""><span class="glyphicon glyphicon-cog"></span> Server
+                            <a href="{% url 'instance_request'%}"><span class="glyphicon glyphicon-cog"></span> Server
                                 Requests</a>
                         </li>
                         {% endif %}

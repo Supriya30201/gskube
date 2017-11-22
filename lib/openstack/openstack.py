@@ -104,6 +104,15 @@ class Openstack(sol_adapter.SolAadapter):
     def create_project(self, domain, name, description):
         keystone.create_project(self.keystone_client, domain, name, description)
 
+    def create_server(self, server_name, image_id, flavor_id, network_id):
+        self.load_nova_client()
+        return nova.create_server(self.nova_client, server_name, image_id, flavor_id, network_id)
+
+    def list_servers(self, endpoint_list, token):
+        self.load_nova_client()
+        self.load_glance_client(endpoint_list, token)
+        return nova.list_servers(self.nova_client, images=glance.image_list(self.glance_client))
+
     def delete_project(self, project_id):
         keystone.delete_project(self.keystone_client, project_id)
 
