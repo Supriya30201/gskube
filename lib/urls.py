@@ -14,10 +14,9 @@ urlpatterns = [
     url(r'^mark_project_selection/$', views.mark_project_selection, name='mark_project_selection'),
     url(r'^manage_instances/$', views.manage_instances, name='manage_instances'),
     url(r'^create_instance/$', views.create_instance, name='create_instance'),
-    url(r'^hypervisor_preference/$', views.hypervisor_preference, name="hypervisor_preference"),
-    url(r'hypervisor_preference_change/', include([
-        url(r'^$', views.hypervisor_preference_change, name="hypervisor_preference_change"),
-        url(r'^(?P<host>[\w\d._-]+)/$', views.hypervisor_preference_change, name="hypervisor_preference_host")
+    url(r'hypervisor_preference/', include([
+        url(r'^$', views.hypervisor_preference, name="hypervisor_preference"),
+        url(r'^(?P<host>[\w\d._-]+)/$', views.hypervisor_preference, name="hypervisor_preference")
     ])),
     url(r'instance_request/$', views.instance_request, name="instance_request"),
     url(r'instance_action/(?P<instance_id>[\w\d._-]+)/(?P<action>[\w]+)/$', views.instance_action,

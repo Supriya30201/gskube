@@ -48,8 +48,8 @@
                     Domain
                 </td>
                 <td>
-                    <input class="form-control form-controlcss" type="text" id="domain" name="domain"
-                           placeholder="enter domain" required>
+                    <input class="form-control form-controlcss" type="text" id="domain" name="domain" value="{{domain}}"
+                           placeholder="enter domain" required {% if domain %} readonly {% endif %}>
                 </td>
                  <td></td>
             </tr>
@@ -58,8 +58,8 @@
                     Username
                 </td>
                 <td>
-                    <input class="form-control form-controlcss" type="text" id="username" name="username"
-                           placeholder="enter username" required>
+                    <input class="form-control form-controlcss" type="text" id="username" name="username" value="{{username}}"
+                           placeholder="enter username" required {% if username %} readonly {% endif %}>
                 </td>
                  <td></td>
             </tr>
@@ -68,8 +68,8 @@
                     Password
                 </td>
                 <td>
-                    <input class="form-control form-controlcss" type="password" id="password" name="password"
-                           placeholder="enter password" required>
+                    <input class="form-control form-controlcss" type="password" id="password" name="password" value="{{password}}"
+                           placeholder="enter password" required {% if password %} readonly {% endif %}>
                 </td>
                  <td></td>
             </tr>
@@ -103,7 +103,7 @@
                         Project
                     </td>
                     <td>
-                        <select name="hypervisor_default_project">
+                        <select name="selected_project">
                             {% for project in request.session.hypervisor_preference_projects %}
                                 <option value="{{ project.id }}">{{ project.name }}</option>
                             {% endfor %}

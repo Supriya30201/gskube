@@ -167,6 +167,15 @@ def get_user(username=None):
     return None
 
 
+def get_user_creds(hypervisor, username):
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
+    user_creds = sol_db.UserCredential.objects.filter(user=username, hypervisor=db_hypervisor.id)
+    if user_creds:
+        user_creds = user_creds.first()
+        return user_creds.domain, user_creds.username, services.decode(user_creds.password)
+    return None, None, None
+
+
 def load_hypervisors():
     hypervisors = sol_db.Hypervisor.objects.all()
     hypervisor_list = []
@@ -220,7 +229,9 @@ def create_hypervisor(hypervisor_type, protocol, host, port):
 
 
 def save_user_credentials(user, hypervisor, domain, username, password):
-    user_creds, _ = sol_db.UserCredential.objects.get_or_create(user=user, hypervisor=hypervisor)
+    db_user = sol_db.User.objects.get(username=user)
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
+    user_creds, _ = sol_db.UserCredential.objects.get_or_create(user=db_user, hypervisor=db_hypervisor)
     user_creds.domain = domain
     user_creds.username = username
     user_creds.password = services.encode(password)
@@ -325,3 +336,17 @@ def extend_expiry(instance_id, doe):
     instance.save()
 
 
+def set_default_project(hypervisor, user, project):
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
+    db_project, _ = sol_db.Project.objects.get_or_create(hypervisor=db_hypervisor, project_id=project['id'],
+                                                         name=project['name'])
+    db_user = sol_db.User.objects.get(username=user[constants.USERNAME])
+    db_user.default_project = db_project
+    db_user.save()
+    return db_project
+
+
+def remove_default_hypervisor(user):
+    db_user = sol_db.User.objects.get(username=user[constants.USERNAME])
+    db_user.default_project = None
+    db_user.save()

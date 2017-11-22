@@ -3,20 +3,20 @@ from django.shortcuts import render
 from django.shortcuts import HttpResponseRedirect
 from . import factory
 from exception.openstack_session_exception import OpenstackSessionException
-from core import views as core_views
+import core
 from db import db_service
 
 
-def load_hypervisor_projects(request):
-    host = request.POST['current_hypervisor']
+def load_hypervisor_projects(request, hypervisor=None, domain=None, username=None, password=None):
+    host = hypervisor if hypervisor else request.POST['current_hypervisor']
     if host == '--select--':
         clear_session_variables(request, [constants.PROJECTS, constants.SELECTED_PROJECT,
                                           constants.SELECTED_HYPERVISOR_OBJ])
         return render(request, constants.DASHBOARD_TEMPLATE)
     selected_hypervisor = get_selected_hypervisor(request, host)
-    selected_hypervisor[constants.DOMAIN] = request.POST['domain']
-    selected_hypervisor[constants.USERNAME] = request.POST['username']
-    selected_hypervisor[constants.PASSWORD] = request.POST['password']
+    selected_hypervisor[constants.DOMAIN] = domain if domain else request.POST['domain']
+    selected_hypervisor[constants.USERNAME] = username if username else request.POST['username']
+    selected_hypervisor[constants.PASSWORD] = password if password else request.POST['password']
     print selected_hypervisor
     error_message = None
     try:
@@ -29,8 +29,8 @@ def load_hypervisor_projects(request):
     return render(request, constants.DASHBOARD_TEMPLATE, {'hypervisor_exception': error_message})
 
 
-def mark_project_selection(request):
-    selected_project = request.POST['hypervisor_project']
+def mark_project_selection(request, project_id=None):
+    selected_project = project_id if project_id else request.POST['hypervisor_project']
     if selected_project == '--select--':
         clear_session_variables(request, [constants.SELECTED_PROJECT])
         return render(request, constants.DASHBOARD_TEMPLATE)
@@ -94,7 +94,7 @@ def create_project(request):
         error_message = e.message
 
     if constants.IS_DJANGO_ADMIN in request.session:
-        return core_views.hypervisor_management(request, message=message, error_message=error_message)
+        return core.views.hypervisor_management(request, message=message, error_message=error_message)
 
 
 def update_project(request):
@@ -113,7 +113,7 @@ def update_project(request):
         error_message = e.message
 
     if constants.IS_DJANGO_ADMIN in request.session:
-        return core_views.hypervisor_management(request, message=message, error_message=error_message)
+        return core.views.hypervisor_management(request, message=message, error_message=error_message)
 
 
 def delete_project(request, project_id=None):
@@ -132,7 +132,7 @@ def delete_project(request, project_id=None):
         error_message = e.message
 
     if constants.IS_DJANGO_ADMIN in request.session:
-        return core_views.hypervisor_management(request, message=message, error_message=error_message)
+        return core.views.hypervisor_management(request, message=message, error_message=error_message)
 
 
 def manage_instances(request, message=None, error_message=None):
@@ -261,27 +261,57 @@ def instance_request(request, load_instance=False, message=None, error_message=N
     return render(request, constants.INSTANCES_TEMPLATE, {constants.MESSAGE: "Instance Requested Successfully."})
 
 
-def hypervisor_preference(request):
-    if request.method == constants.GET:
+def hypervisor_preference(request, host=None, remove=False):
+    user = request.session[constants.USER]
+    if host == 'remove_default':
+        db_service.remove_default_hypervisor(user)
+        del user[constants.DEFAULT_HYPERVISOR]
+        del user[constants.DEFAULT_PROJECT]
+        request.session[constants.USER] = user
+        return render(request, constants.HYPERVISOR_PREFERENCE_TEMPLATE,
+                      {constants.MESSAGE: "Default setting removed successfully."})
+
+    if request.method == constants.GET and not host:
+        clear_session_variables(request, [constants.HYPERVISOR_PREFERENCE_PROJECTS,
+                                          constants.HYPERVISOR_PREFERENCE_SELECTED_HOST])
         return render(request, constants.HYPERVISOR_PREFERENCE_TEMPLATE)
 
+    domain, username, password = None, None, None
 
-def hypervisor_preference_change(request, host=None):
-    if request.method == constants.GET:
+    if host:
         request.session[constants.HYPERVISOR_PREFERENCE_SELECTED_HOST] = host
-        return render(request, constants.HYPERVISOR_ADMIN_LOGIN_TEMPLATE,
-                      {'redirect': "/hypervisor_admin/hypervisor_preference_change/", 'button_name': 'Load Projects'})
+        domain, username, password = db_service.get_user_creds(host, user[constants.USERNAME])
+        if not domain:
+            return render(request, constants.HYPERVISOR_ADMIN_LOGIN_TEMPLATE,
+                          {'redirect': "/hypervisor_admin/hypervisor_preference/", 'button_name': 'Load Projects'})
+
     if 'selected_project' in request.POST:
-        return
+        selected_project_id = request.POST['selected_project']
+        selected_project = None
+        for project in request.session[constants.HYPERVISOR_PREFERENCE_PROJECTS]:
+            if project['id'] == selected_project_id:
+                selected_project = project
+                break
+        db_service.set_default_project(request.session[constants.HYPERVISOR_PREFERENCE_SELECTED_HOST], user,
+                                       selected_project)
+        user[constants.DEFAULT_PROJECT] = selected_project['name']
+        user[constants.DEFAULT_HYPERVISOR] = request.session[constants.HYPERVISOR_PREFERENCE_SELECTED_HOST]
+        request.session[constants.USER] = user
+        return render(request, constants.HYPERVISOR_PREFERENCE_TEMPLATE,
+                      {constants.MESSAGE: "Default project updated successfully."})
 
     hypervisor = get_selected_hypervisor(request, request.session[constants.HYPERVISOR_PREFERENCE_SELECTED_HOST])
-    hypervisor[constants.DOMAIN] = request.POST[constants.DOMAIN]
-    hypervisor[constants.USERNAME] = request.POST[constants.USERNAME]
-    hypervisor[constants.PASSWORD] = request.POST[constants.PASSWORD]
-    adapter = factory.get_adapter(hypervisor[constants.TYPE, hypervisor])
-    request.session[constants.HYPERVISOR_PREFERENCE_PROJECTS] = adapter.get_projects_using_unscoped_login()
+    hypervisor[constants.DOMAIN] = domain if domain else request.POST[constants.DOMAIN]
+    hypervisor[constants.USERNAME] = username if username else request.POST[constants.USERNAME]
+    hypervisor[constants.PASSWORD] = password if password else request.POST[constants.PASSWORD]
+    adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+    request.session[constants.HYPERVISOR_PREFERENCE_PROJECTS], _ = adapter.get_projects_using_unscoped_login()
+    db_service.save_user_credentials(user[constants.USERNAME], hypervisor[constants.HOST], hypervisor[constants.DOMAIN],
+                                     hypervisor[constants.USERNAME], hypervisor[constants.PASSWORD])
     return render(request, constants.HYPERVISOR_ADMIN_LOGIN_TEMPLATE,
-                  {'redirect': "{% url 'hypervisor_preference_change' %}", 'button_name': 'Save'})
+                  {'redirect': "/hypervisor_admin/hypervisor_preference/", 'button_name': 'Save',
+                   'domain': hypervisor[constants.DOMAIN], 'username': hypervisor[constants.USERNAME],
+                   'password': hypervisor[constants.PASSWORD]})
 
 
 def instance_action(request, instance_id, action):

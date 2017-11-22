@@ -66,24 +66,26 @@
             {% for hypervisor in request.session.user_hypervisors %}
             <tr>
                 <td>{{ hypervisor.host }}</td>
+
+                {% if request.session.user.default_hypervisor == hypervisor.host %}
                 <td>
-                    {% if hypervisor.default %}
                     <span class="glyphicon glyphicon-ok" aria-hidden="true"></span>
-                    {% else %}
-                    <span class="glyphicon glyphicon-remove" aria-hidden="true"></span>
-                    {% endif %}
                 </td>
                 <td>
-                    {{ hypervisor.default_project }}
+                    {{ request.session.user.default_project }}
                 </td>
+                {% else %}
+                <td><span class="glyphicon glyphicon-remove" aria-hidden="true"></span></td>
+                <td>-</td>
+                {% endif %}
                 <td>
                     <select id="actions" onChange="handleAction(this);" >
                         <option selected>choose action</option>
-                        {% if hypervisor.default %}
-                        <option value="" >Remove Default</option>
-                        <option value="" >Modify Default</option>
+                        {% if request.session.user.default_hypervisor == hypervisor.host %}
+                        <option value="{% url 'hypervisor_preference' host='remove_default'%}" >Remove Default</option>
+                        <option value="{% url 'hypervisor_preference' host=hypervisor.host %}" >Modify Default</option>
                         {% else %}
-                        <option value="{% url 'hypervisor_preference_host' host=hypervisor.host %}">Make Default</option>
+                        <option value="{% url 'hypervisor_preference' host=hypervisor.host %}">Make Default</option>
                         {% endif %}
                     </select>
                 </td>

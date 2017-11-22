@@ -66,6 +66,8 @@ USERNAME = "username"
 USER_FULL_NAME = "user_full_name"
 USER_EMAIL = "user_email"
 USER_PASSWORD = "user_password"
+DEFAULT_PROJECT = "default_project"
+DEFAULT_HYPERVISOR = "default_hypervisor"
 
 
 # Glance Constants

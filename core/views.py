@@ -6,6 +6,7 @@ from db import models as sol_db
 from db import db_service
 import logging
 from lib import factory
+import lib
 from exception.sol_exception import SOLException
 
 logger = logging.getLogger(__name__)
@@ -50,9 +51,19 @@ def login(request):
             # for SOL user, we should put first name in session, to show welcome message.
             user = auth_resp[constants.SOL_USER]
             name = user.full_name.split()
-            request.session[constants.USER] = {constants.USERNAME: username, constants.USER_FIRST_NAME: name[0]}
+            session_user = {constants.USERNAME: username, constants.USER_FIRST_NAME: name[0]}
             request.session[constants.USER_HYPERVISORS] = db_service.get_hypervisor_of_user(username)
-
+            if user.default_project:
+                hypervisor = user.default_project.hypervisor.host
+                project_id = user.default_project.project_id
+                project_name = user.default_project.name
+                domain, username, password = db_service.get_user_creds(hypervisor, username)
+                session_user[constants.DEFAULT_HYPERVISOR] = hypervisor
+                session_user[constants.DEFAULT_PROJECT] = project_name
+                request.session[constants.USER] = session_user
+                lib.views.load_hypervisor_projects(request, hypervisor, domain, username, password)
+                return lib.views.mark_project_selection(request, project_id)
+            request.session[constants.USER] = session_user
         return load_dashboard(request)
 
     return render(request, constants.LOGIN_TEMPLATE, {constants.ERROR_MESSAGE: auth_resp[constants.ERROR_MESSAGE]})
@@ -288,7 +299,7 @@ def create_hypervisor(request):
         user = db_service.create_user({constants.USERNAME: constants.HYPERVISOR_SOLUSER_NAME,
                                        constants.USER_EMAIL: constants.HYPERVISOR_SOLUSER_EMAIL,
                                        constants.USER_FULL_NAME: constants.HYPERVISOR_SOLUSER_NAME})
-    db_service.save_user_credentials(user, hypervisor, domain, constants.HYPERVISOR_SOLUSER_NAME,
+    db_service.save_user_credentials(user.username, hypervisor.host, domain, constants.HYPERVISOR_SOLUSER_NAME,
                                      user_detail['user_password'])
     db_service.update_hypervisor_user_id(user, hypervisor, user_detail['user_id'])
 
