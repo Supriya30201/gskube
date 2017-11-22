@@ -121,4 +121,5 @@ INSTANCES_TEMPLATE = "instances.html"
 CREATE_INSTANCE_TEMPLATE = "create_instance.html"
 HYPERVISOR_PREFERENCE_TEMPLATE = "hypervisor_preference.html"
 REQUESTED_INSTANCES_TEMPLATE = "requested_instances.html"
+EXTEND_EXPIRY_TEMPLATE = "extend_expiry.html"
 

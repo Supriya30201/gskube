@@ -22,4 +22,5 @@ urlpatterns = [
     url(r'instance_request/$', views.instance_request, name="instance_request"),
     url(r'instance_action/(?P<instance_id>[\w\d._-]+)/(?P<action>[\w]+)/$', views.instance_action,
         name="instance_action"),
+    url(r'^extend_expiry/$', views.get_instances_for_extend_expiry, name="extend_expiry"),
 ]

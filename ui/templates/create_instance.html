@@ -24,6 +24,10 @@
         {% if modify %}
          <li><a href="{% url 'instance_request'%}">Server Requests</a></li>
          <li>Modify Instance</li>
+        {% elif extend %}
+         <li><a href="{% url 'manage_instances'%}">Instance Management</a></li>
+         <li><a href="{% url 'extend_expiry'%}">Extend Expiry</a></li>
+         <li>Instance Validity Extend</li>
         {% else %}
         <li><a href="{% url 'manage_instances'%}">Instance Management</a></li>
         <li>Create Instance</li>
@@ -34,6 +38,9 @@
         {% if modify %}
         <input type="hidden" name="modify" value="True"/>
         {% endif %}
+        {% if extend %}
+        <input type="hidden" name="extend" value="True"/>
+        {% endif %}
         <table class="table table-hover" align="left">
 
             <input type="hidden" name="request_id" value="{{ instance.instance_id }}">
@@ -42,7 +49,7 @@
             <tr>
                 <td><label>Instance Name : </label></td>
                 <td><input class="form-control" type="text" placeholder="Enter instance name" name="server_name"
-                           id="server_name" value="{{ instance.name }}" size="10" required {% if extend or modify %} readonly
+                           id="server_name" value="{% if instance.instance_name %}{{instance.instance_name}}{% else %}{{instance.name}}{%endif%}" size="10" required {% if extend or modify %} readonly
                            {% endif %}/></td>
             </tr>
             {% if not extend %}

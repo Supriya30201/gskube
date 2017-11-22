@@ -58,7 +58,7 @@
         <tr>
             <button type="button" name="request_server" class="btn btn-primary" onclick="submit_form('{% url 'create_instance'%}')" >Request server</button>
             <span class="left-space"> </span>
-            <button type="button" name="extend_expiry" class="btn btn-primary" onclick="submit_form('')">Extend Expiry</button>
+            <button type="button" name="extend_expiry" class="btn btn-primary" onclick="submit_form('{% url 'extend_expiry'%}')">Extend Expiry</button>
             <span class="left-space"> </span>
             <button type="button" name="refresh" class="btn btn-primary" onclick="submit_form('{% url 'manage_instances' %}')">Refresh</button>
         </tr>
@@ -133,7 +133,7 @@
               <option value="{% url 'instance_action' instance_id=instance.instance_id action='start' %}">Start</option>
               {% endif %}
               <option value="{% url 'instance_action' instance_id=instance.instance_id action='delete' %}">Delete</option>
-              <option value="{% url 'instance_action' instance_id=instance.instance_id action='modify' %}">Modify</option>
+              <!--<option value="{% url 'instance_action' instance_id=instance.instance_id action='modify' %}">Modify</option>-->
           </select>
           </td>
       </tr>

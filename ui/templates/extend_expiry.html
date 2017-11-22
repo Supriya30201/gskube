@@ -1,0 +1,102 @@
+{% extends "serviceonline_base_template.html" %}
+
+{% block body %}
+{% load static %}
+<style>
+#extend_expiry_length,
+#extend_expiry_info{
+   float:left;
+   margin-left:5px;
+}
+
+#extend_expiry_filter,
+#extend_expiry_paginate{
+   float:right;
+   margin-right:5px;
+}
+
+
+</style>
+
+<br><br>
+
+
+<div class="container" style="height:900px;"><h3 align="center">Extend Expiry</h3>
+    <form name="expiry" method="post" action="{% url 'extend_expiry' %}">
+        {% csrf_token %}
+
+        <ul class="breadcrumb">
+            <li><a href="{% url 'manage_instances' %}">Instance Information</a></li>
+             <li> Extend Expiry</li>
+        </ul>
+
+
+        <div align="left">
+            {% if message %}
+            <div align="center" class="alert alert-success fade in" style="width:350px;">
+                <a class="close" data-dismiss="alert" href="#">&times;</a>
+                <p>{{message}}</p>
+            </div>
+            {% endif %}
+            {% if error_message %}
+            <div id="success-alert" align="center" class="alert alert-danger fade in" style="width:350px;">
+                <a class="close" data-dismiss="alert" href="#">&times;</a>
+                <p>{{error_message}}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        {% if instances %}
+        <input id="request_id" name="instance_id" value="" type="hidden">
+        <script language="javascript" type="text/javascript">
+			function save_and_submit(instance_id)
+			{
+				document.expiry.instance_id.value = instance_id;
+				document.expiry.submit();
+			}
+
+
+        </script>
+
+        <table class="table table-striped table-bordered table-hover display" id="extend_expiry" cellspacing="0"
+               width="100%">
+            <thead class="pbr">
+            <tr>
+                <td><label>#</label></td>
+                <td><label>Instance</label></td>
+                <td><label title="Date Of Creation">DOC</label></td>
+                <td><label title="Date Of Expiry">DOE</label></td>
+                <td><label>Action</label></td>
+            </tr>
+            </thead>
+            <tbody>
+            {% for instance in instances %}
+            <tr>
+                <td>{{ forloop.counter }}</td>
+                <td>{{ instance.instance_name }}</td>
+                <td>{{ instance.doc }}</td>
+                <td>{{ instance.doe }}</td>
+                <td>
+                    <button type="button" class="btn btn-primary" onclick="save_and_submit({{ instance.id }})">Extend
+                        Expiry
+                    </button>
+                </td>
+            </tr>
+            {% endfor %}
+            </tbody>
+        </table>
+
+        {% else %}
+        <p align="center">There are no instances to extend.</p>
+
+        {% endif %}
+
+        <script>
+                $('#extend_expiry').dataTable();
+
+
+        </script>
+    </form>
+</div>
+
+{% endblock %}

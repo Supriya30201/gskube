@@ -223,7 +223,7 @@ def save_user_credentials(user, hypervisor, domain, username, password):
     user_creds, _ = sol_db.UserCredential.objects.get_or_create(user=user, hypervisor=hypervisor)
     user_creds.domain = domain
     user_creds.username = username
-    user_creds.password = password
+    user_creds.password = services.encode(password)
     user_creds.save()
 
 
@@ -282,8 +282,12 @@ def requested_instances(hypervisor, project):
     return []
 
 
-def remove_instance_request(request_id):
-    instance_request = sol_db.Instance.objects.filter(id=request_id)
+def remove_instance(request_id=None, instance_id=None):
+    if request_id:
+        instance_request = sol_db.Instance.objects.filter(id=request_id)
+    else:
+        instance_request = sol_db.Instance.objects.filter(instance_id=instance_id)
+
     if instance_request:
         instance_request.delete()
 
@@ -299,5 +303,25 @@ def update_requested_instance(request_id, instance_id=None, image=None, flavor=N
         instance_request.network = network
         instance_request.doe = doe
     instance_request.save()
+
+
+def get_created_instances(hypervisor, project, user, request_id=None):
+    if request_id:
+        return sol_db.Instance.objects.get(id=request_id)
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor[constants.HOST])
+    db_project = sol_db.Project.objects.filter(hypervisor=db_hypervisor.id, project_id=project['id'])
+    if not db_project:
+        return []
+    db_project = db_project.first()
+    instances = sol_db.Instance.objects.filter(project=db_project.id, user=user[constants.USERNAME], requested=False)
+    if not instances:
+        return []
+    return instances.all()
+
+
+def extend_expiry(instance_id, doe):
+    instance = sol_db.Instance.objects.get(instance_id=instance_id)
+    instance.doe = doe
+    instance.save()
 
 

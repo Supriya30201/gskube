@@ -48,6 +48,23 @@ def mark_project_selection(request):
     return render(request, constants.DASHBOARD_TEMPLATE)
 
 
+def get_instances_for_extend_expiry(request, load_instances=False, message=None, error_message=None):
+    if request.method == constants.GET or load_instances:
+        instances = db_service.get_created_instances(request.session[constants.SELECTED_HYPERVISOR_OBJ],
+                                                     request.session[constants.SELECTED_PROJECT],
+                                                     request.session[constants.USER])
+        return render(request, constants.EXTEND_EXPIRY_TEMPLATE, {'instances': instances, constants.MESSAGE: message,
+                                                                  constants.ERROR_MESSAGE: error_message})
+
+    instance = db_service.get_created_instances(request.session[constants.SELECTED_HYPERVISOR_OBJ],
+                                                request.session[constants.SELECTED_PROJECT],
+                                                request.session[constants.USER],
+                                                request.POST['instance_id'])
+    return render(request, constants.CREATE_INSTANCE_TEMPLATE, {'instance': instance, 'extend': True,
+                                                                'button_name': 'Modify'})
+
+
+
 def get_selected_hypervisor(request, host):
     for hypervisor in request.session[constants.USER_HYPERVISORS]:
         if hypervisor[constants.HOST] == host:
@@ -157,7 +174,7 @@ def create_instance(request, modify=False):
         except Exception as e:
             return instance_request(request, load_instance=True, error_message=e.message)
     elif request_type == "reject":
-        db_service.remove_instance_request(instance_id)
+        db_service.remove_instance(instance_id)
         return instance_request(request, load_instance=True, message="Request rejected successfully.")
     else:
         instance = get_instance(request, instance_id)
@@ -231,6 +248,11 @@ def instance_request(request, load_instance=False, message=None, error_message=N
                                              network=request.POST['network'], flavor=request.POST['flavor'],
                                              doe=request.POST['date'])
         return create_instance(request, modify=True)
+    if 'extend' in request.POST:
+        instance_id = request.POST['request_id']
+        doe = request.POST['date']
+        db_service.extend_expiry(instance_id, doe)
+        return get_instances_for_extend_expiry(request, load_instances=True, message="Expiry extended successfully.")
 
     db_service.save_instance_request(request.session[constants.SELECTED_HYPERVISOR_OBJ],
                                      request.session[constants.SELECTED_PROJECT], request.session[constants.USER],
@@ -274,12 +296,14 @@ def instance_action(request, instance_id, action):
             adapter.stop_instance(instance_id)
             return manage_instances(request, message="Stop instance request submitted successfully.")
         elif action == "modify":
+            # can be implemented in future.
             return
         elif action == "console":
             vnc_url = adapter.load_console(instance_id)
             return HttpResponseRedirect(vnc_url)
         elif action == "delete":
             adapter.delete_instance(instance_id)
+            db_service.remove_instance(instance_id=instance_id)
             return manage_instances(request, message="Delete instance request submitted successfully.")
     except Exception as e:
         return manage_instances(request, error_message=e.message)
