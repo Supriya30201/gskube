@@ -60,7 +60,7 @@
             <span class="left-space"> </span>
             <button type="button" name="extend_expiry" class="btn btn-primary" onclick="submit_form('')">Extend Expiry</button>
             <span class="left-space"> </span>
-            <button type="button" name="extend_expiry" class="btn btn-primary" onclick="submit_form('{% url 'manage_instances' %}')">Refresh</button>
+            <button type="button" name="refresh" class="btn btn-primary" onclick="submit_form('{% url 'manage_instances' %}')">Refresh</button>
         </tr>
       </form>
     </table>
@@ -68,7 +68,7 @@
 </div>
 </div>
   <br>
-  <form name="form2" method="post" action="">
+  <form name="instances_form" method="post" action="">
   {% csrf_token %}
   <input type="hidden" id="mainvalue" name="mainvalue" value="0">
   <input type="hidden" id="option_selected" name="option_selected" value="0">
@@ -98,38 +98,42 @@
         <td>{{instance.instance_status}}</td>
 
         <script type="text/javascript">
-          function getValue(value, selectBox){
+          function getValue(selectBox){
 
-            if(value == "choose action")
+            if(this.value == "choose action")
                 return;
 
-            if( (selectBox.options[selectBox.selectedIndex].text)== "delete"){
-                 if (!confirm("Are you sure to delete this instance?")) {
+            if( (selectBox.options[selectBox.selectedIndex].text) == "Delete"){
+                 if (!confirm("Are you sure to delete instance ?")) {
                     selectBox.selectedIndex = 0;
                     return;
                  }
              }
 
-            if(value.startsWith("/compute")){
-              window.open(value, '_blank');
+            if((selectBox.options[selectBox.selectedIndex].text) == "Console"){
+              window.open(selectBox.value, '_blank');
               selectBox.selectedIndex = 0;
               return;
             }
 
-            document.getElementById('mainvalue').value = value;
-            document.form2.submit();
+            document.instances_form.action = selectBox.value;
+            document.instances_form.method = "get";
+            document.instances_form.submit();
           }
 
         </script>
         <td>
 
-          <select id="actions" onChange="getValue(this.value, this);" >
-              <option selected>choose action</option>
-              {% if instance.status == 'ACTIVE' %}<option  value="" >Console </option>{% endif %}
-              <option value='' >start</option>
-              <option value =''>stop  </option>
-              <option value='' >delete </option>
-              <option value=''>modify </option>
+          <select id="actions" onChange="getValue(this);" >
+              <option selected value="choose action">choose action</option>
+              {% if instance.instance_status == 'ACTIVE' %}
+              <option value="{% url 'instance_action' instance_id=instance.instance_id action='console' %}">Console</option>
+              <option value="{% url 'instance_action' instance_id=instance.instance_id action='stop' %}">Stop</option>
+              {% else %}
+              <option value="{% url 'instance_action' instance_id=instance.instance_id action='start' %}">Start</option>
+              {% endif %}
+              <option value="{% url 'instance_action' instance_id=instance.instance_id action='delete' %}">Delete</option>
+              <option value="{% url 'instance_action' instance_id=instance.instance_id action='modify' %}">Modify</option>
           </select>
           </td>
       </tr>

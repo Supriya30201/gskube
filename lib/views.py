@@ -1,8 +1,8 @@
 from core import constants
 from django.shortcuts import render
+from django.shortcuts import HttpResponseRedirect
 from . import factory
 from exception.openstack_session_exception import OpenstackSessionException
-from exception.openstack_exception import OpenstackException
 from core import views as core_views
 from db import db_service
 
@@ -24,8 +24,6 @@ def load_hypervisor_projects(request):
         projects, _ = adapter.get_projects_using_unscoped_login()
         request.session[constants.PROJECTS] = projects
         request.session[constants.SELECTED_HYPERVISOR_OBJ] = selected_hypervisor
-    except OpenstackException as oe:
-        error_message = oe.get_message()
     except Exception as e:
         error_message = e.message
     return render(request, constants.DASHBOARD_TEMPLATE, {'hypervisor_exception': error_message})
@@ -75,8 +73,6 @@ def create_project(request):
         if constants.IS_DJANGO_ADMIN in request.session:
             clear_session_variables(request, [constants.PROJECTS, constants.SELECTED_HYPERVISOR_OBJ])
         error_message = ose.get_message()
-    except OpenstackException as oe:
-        error_message = oe.get_message()
     except Exception as e:
         error_message = e.message
 
@@ -96,8 +92,6 @@ def update_project(request):
         if constants.IS_DJANGO_ADMIN in request.session:
             clear_session_variables(request, [constants.PROJECTS, constants.SELECTED_HYPERVISOR_OBJ])
             error_message = ose.get_message()
-    except OpenstackException as oe:
-        error_message = oe.get_message()
     except Exception as e:
         error_message = e.message
 
@@ -117,8 +111,6 @@ def delete_project(request, project_id=None):
         if constants.IS_DJANGO_ADMIN in request.session:
             clear_session_variables(request, [constants.PROJECTS, constants.SELECTED_HYPERVISOR_OBJ])
             error_message = ose.get_message()
-    except OpenstackException as oe:
-        error_message = oe.get_message()
     except Exception as e:
         error_message = e.message
 
@@ -126,15 +118,15 @@ def delete_project(request, project_id=None):
         return core_views.hypervisor_management(request, message=message, error_message=error_message)
 
 
-def manage_instances(request):
+def manage_instances(request, message=None, error_message=None):
     try:
         hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
         hypervisor[constants.PROJECT_ID] = request.session[constants.SELECTED_PROJECT]['id']
         adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
         instances = adapter.list_servers(request.session[constants.ENDPOINT_URLS], request.session[constants.TOKEN])
-        return render(request, constants.INSTANCES_TEMPLATE, {constants.INSTANCES: instances})
-    except OpenstackException as oe:
-        return render(request, constants.INSTANCES_TEMPLATE, {constants.ERROR_MESSAGE: oe.get_message()})
+        return render(request, constants.INSTANCES_TEMPLATE, {constants.INSTANCES: instances,
+                                                              constants.MESSAGE: message,
+                                                              constants.ERROR_MESSAGE: error_message})
     except Exception as e:
         return render(request, constants.INSTANCES_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
 
@@ -146,8 +138,6 @@ def create_instance(request, modify=False):
             request.session[constants.IMAGES] = images
             request.session[constants.NETWORKS] = networks
             request.session[constants.FLAVORS] = flavors
-        except OpenstackException as oe:
-            return render(request, constants.INSTANCES_TEMPLATE, {constants.ERROR_MESSAGE: oe.get_message()})
         except Exception as e:
             return render(request, constants.INSTANCES_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
         return render(request, constants.CREATE_INSTANCE_TEMPLATE, {'button_name': 'Request Server'})
@@ -164,8 +154,6 @@ def create_instance(request, modify=False):
                                               instance['network_id'])
             db_service.update_requested_instance(request_id=instance_id, instance_id=server_id)
             return instance_request(request, load_instance=True, message="Requested instance created successfully.")
-        except OpenstackException as oe:
-            return instance_request(request, load_instance=True, error_message=oe.get_message())
         except Exception as e:
             return instance_request(request, load_instance=True, error_message=e.message)
     elif request_type == "reject":
@@ -274,7 +262,27 @@ def hypervisor_preference_change(request, host=None):
                   {'redirect': "{% url 'hypervisor_preference_change' %}", 'button_name': 'Save'})
 
 
-
+def instance_action(request, instance_id, action):
+    try:
+        hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+        hypervisor[constants.PROJECT_ID] = request.session[constants.SELECTED_PROJECT]['id']
+        adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+        if action == "start":
+            adapter.start_instance(instance_id)
+            return manage_instances(request, message="Start instance request submitted successfully.")
+        elif action == "stop":
+            adapter.stop_instance(instance_id)
+            return manage_instances(request, message="Stop instance request submitted successfully.")
+        elif action == "modify":
+            return
+        elif action == "console":
+            vnc_url = adapter.load_console(instance_id)
+            return HttpResponseRedirect(vnc_url)
+        elif action == "delete":
+            adapter.delete_instance(instance_id)
+            return manage_instances(request, message="Delete instance request submitted successfully.")
+    except Exception as e:
+        return manage_instances(request, error_message=e.message)
 
 def clear_session_variables(request, variables):
     for variable in variables:

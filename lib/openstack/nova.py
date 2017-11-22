@@ -79,3 +79,44 @@ def create_server(nova_client, server_name, image_id, flavor_id, network_id):
     except Exception as e:
         logger.error("Exception while creating server : " + e.message)
         raise OpenstackException(message="Exception while creating server : " + e.message, exception=e)
+
+
+def modify_flavor(nova_client, server_id, flavor_id):
+    try:
+        nova_client.servers.resize(server=server_id, flavor=flavor_id)
+    except Exception as e:
+        logger.error("Exception while modifying flavor of server : " + e.message)
+        raise OpenstackException(message=e.message, exception=e)
+
+
+def load_console(nova_client, server_id):
+    try:
+        vnc_url_obj = nova_client.servers.get_vnc_console(server=server_id, console_type="novnc")
+        return vnc_url_obj['console']['url']
+    except Exception as e:
+        logger.error("Exception while getting vnc url to start console : " + e.message)
+        raise OpenstackException(message=e.message, exception=e)
+
+
+def start_server(nova_client, server_id):
+    try:
+        return nova_client.servers.start(server=server_id)
+    except Exception as e:
+        logger.error("Exception while starting server : " + e.message)
+        raise OpenstackException(message=e.message, exception=e)
+
+
+def delete_server(nova_client, server_id):
+    try:
+        return nova_client.servers.delete(server=server_id)
+    except Exception as e:
+        logger.error("Exception while deleting server : " + e.message)
+        raise OpenstackException(message=e.message, exception=e)
+
+
+def stop_server(nova_client, server_id):
+    try:
+        return nova_client.servers.stop(server=server_id)
+    except Exception as e:
+        logger.error("Exception while stopping server : " + e.message)
+        raise OpenstackException(message="Exception while stopping server : " + e.message, exception=e)

@@ -20,4 +20,6 @@ urlpatterns = [
         url(r'^(?P<host>[\w\d._-]+)/$', views.hypervisor_preference_change, name="hypervisor_preference_host")
     ])),
     url(r'instance_request/$', views.instance_request, name="instance_request"),
+    url(r'instance_action/(?P<instance_id>[\w\d._-]+)/(?P<action>[\w]+)/$', views.instance_action,
+        name="instance_action"),
 ]

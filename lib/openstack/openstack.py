@@ -116,6 +116,26 @@ class Openstack(sol_adapter.SolAadapter):
     def delete_project(self, project_id):
         keystone.delete_project(self.keystone_client, project_id)
 
+    def load_console(self, instance_id):
+        self.load_nova_client()
+        return nova.load_console(self.nova_client, instance_id)
+
+    def start_instance(self, instance_id):
+        self.load_nova_client()
+        return nova.start_server(self.nova_client, instance_id)
+
+    def stop_instance(self, instance_id):
+        self.load_nova_client()
+        return nova.stop_server(self.nova_client, instance_id)
+
+    def delete_instance(self, instance_id):
+        self.load_nova_client()
+        return nova.delete_server(self.nova_client, instance_id)
+
+    def modify_instance(self, instance_id, flavor_id):
+        self.load_nova_client()
+        return nova.modify_server(self.nova_client, instance_id, flavor_id)
+
     def load_nova_client(self):
         if not self.nova_client:
             self.nova_client = nova.get_nova_connection(self.protocol, self.host, self.port, self.domain, self.username,
