@@ -353,3 +353,14 @@ def load_projects(request, host=None):
         return hypervisor_management(request, error_message=se.get_message())
     except Exception as e:
         return hypervisor_management(request, error_message=e.message)
+
+
+def smtp_configuration(request):
+    if request.method == constants.POST:
+        smtp_config = db_service.set_smtp_configuration(request.POST[constants.SMTP_SERVER],
+                                                        request.POST[constants.SMTP_PORT],
+                                                        request.POST[constants.SMTP_USERNAME],
+                                                        request.POST[constants.SMTP_PASSWORD])
+    else:
+        smtp_config = db_service.get_smtp_configuration()
+    return render(request, constants.SMTP_CONFIGURATION_TEMPLATE, smtp_config)

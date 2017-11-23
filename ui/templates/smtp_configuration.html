@@ -1,0 +1,71 @@
+{% extends "serviceonline_base_template.html" %}
+
+{% block body %}
+
+<style>
+    .table-hover tbody tr:hover td {
+    background: #e4e4e4;
+}
+.table{
+width:70% !important;
+}
+tbody{
+background-color: rgba(245, 245, 245, 0.36) !important;
+}
+
+.form-controlcss{
+width: 60% !Important;
+}
+
+
+
+</style>
+
+
+<div class="container col-md-12"><h3 align="center">SMTP Configuration</h3><br/><br/>
+    <form name="change_email_config" method="post" action="{% url 'smtp_configuration'%}">
+        {% csrf_token %}
+        <div align="center">
+            {% if message %}
+            <div align="center" class="alert alert-success fade in" style="width:350px;">
+                <a class="close" data-dismiss="alert" href="#">&times;</a>
+                <p>{{message}}</p>
+            </div>
+            {% endif %}
+            {% if error_message %}
+            <div id="success-alert" align="center" class="alert alert-danger fade in" style="width:350px;">
+                <a class="close" data-dismiss="alert" href="#">&times;</a>
+                <p>{{error_message}}</p>
+            </div>
+            {% endif %}
+        </div>
+
+        <table width="300px" class="table table-hover" align="center">
+            <tr>
+                <td><label>SMTP Server FQDN: </label></td>
+                <td><input class="form-control form-controlcss" type="text" name="smtp_server"  value="{{ smtp_server }}"
+                           required></td>
+            </tr>
+            <tr>
+                <td><label>SMTP Server Port: </label></td>
+                <td><input class="form-control form-controlcss" type="text" name="smtp_port" value="{{ smtp_port }}" required></td>
+            </tr>
+            <tr>
+                <td><label>Email: </label></td>
+                <td><input class="form-control form-controlcss" type="email" name="smtp_username" value="{{ smtp_username }}"required></td>
+            </tr>
+            <tr>
+                <td><label>password : </label></td>
+                <td><input class="form-control form-controlcss" type="password" name="smtp_password" value="{{ smtp_password }}" required></td>
+            </tr>
+        </table>
+        <div align="center">
+            </br>
+            <button type="submit" name="change_email_conf" value="Change email config" class="btn btn-primary">save
+            </button>
+        </div>
+    </form>
+</div>
+
+
+{% endblock %}

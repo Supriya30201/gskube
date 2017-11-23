@@ -27,6 +27,7 @@ urlpatterns = [
         url(r'^$', views.load_projects, name='load_projects'),
         url(r'^(?P<host>[\w\d.]+)/$', views.load_projects, name='hypervisor_login')
     ])),
+    url(r'^smtp_configuration/$', views.smtp_configuration, name='smtp_configuration'),
 
 
 ]

@@ -396,7 +396,7 @@
                 </li>
                 {% if request.session.is_django_admin %}
                 <li>
-                    <a href="" class="">
+                    <a href="{% url 'smtp_configuration'%}" class="">
                         <span class="left-space">SMTP configuration</span>
                     </a>
                 </li>

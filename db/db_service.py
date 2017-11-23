@@ -316,7 +316,13 @@ def update_requested_instance(request_id, instance_id=None, image=None, flavor=N
     instance_request.save()
 
 
-def get_created_instances(hypervisor, project, user, request_id=None):
+def get_created_instances(hypervisor=None, project=None, user=None, request_id=None, all_created=False):
+    if all_created:
+        instances = sol_db.Instance.objects.filter(requested=False)
+        if not instances:
+            return []
+        return instances.all()
+
     if request_id:
         return sol_db.Instance.objects.get(id=request_id)
     db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor[constants.HOST])
@@ -350,3 +356,30 @@ def remove_default_hypervisor(user):
     db_user = sol_db.User.objects.get(username=user[constants.USERNAME])
     db_user.default_project = None
     db_user.save()
+
+
+def get_smtp_configuration():
+    server = sol_db.ConfigMaster.objects.filter(key=constants.SMTP_SERVER)
+    if not server:
+        return {}
+
+    server = server.first().value
+
+    return {
+        constants.SMTP_SERVER: server,
+        constants.SMTP_PORT: sol_db.ConfigMaster.objects.filter(key=constants.SMTP_PORT).first().value,
+        constants.SMTP_USERNAME: sol_db.ConfigMaster.objects.filter(key=constants.SMTP_USERNAME).first().value,
+        constants.SMTP_PASSWORD: services.decode(
+            sol_db.ConfigMaster.objects.filter(key=constants.SMTP_PASSWORD).first().value)
+    }
+
+
+def set_smtp_configuration(server, port, username, password):
+    update_configuration(constants.SMTP_SERVER, server)
+    update_configuration(constants.SMTP_PORT, port)
+    update_configuration(constants.SMTP_USERNAME, username)
+    update_configuration(constants.SMTP_PASSWORD, services.encode(password))
+    return {
+        constants.SMTP_SERVER: server, constants.SMTP_PORT: port, constants.SMTP_USERNAME: username,
+        constants.SMTP_PASSWORD: password
+    }

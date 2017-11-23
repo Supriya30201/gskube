@@ -114,6 +114,12 @@ INSTANCE_IPS = "instance_ips"
 INSTANCE_IMAGE = "instance_image"
 
 
+# SMTP Constants
+SMTP_SERVER = "smtp_server"
+SMTP_PORT = "smtp_port"
+SMTP_USERNAME = "smtp_username"
+SMTP_PASSWORD = "smtp_password"
+
 
 # Templates
 LOGIN_TEMPLATE = "login_page.html"
@@ -134,3 +140,4 @@ HYPERVISOR_PREFERENCE_TEMPLATE = "hypervisor_preference.html"
 REQUESTED_INSTANCES_TEMPLATE = "requested_instances.html"
 EXTEND_EXPIRY_TEMPLATE = "extend_expiry.html"
 PROJECT_MEMBER_TEMPLATE = "project_member.html"
+SMTP_CONFIGURATION_TEMPLATE = "smtp_configuration.html"
