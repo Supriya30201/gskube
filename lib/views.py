@@ -64,7 +64,6 @@ def get_instances_for_extend_expiry(request, load_instances=False, message=None,
                                                                 'button_name': 'Modify'})
 
 
-
 def get_selected_hypervisor(request, host):
     for hypervisor in request.session[constants.USER_HYPERVISORS]:
         if hypervisor[constants.HOST] == host:
@@ -133,6 +132,38 @@ def delete_project(request, project_id=None):
 
     if constants.IS_DJANGO_ADMIN in request.session:
         return core.views.hypervisor_management(request, message=message, error_message=error_message)
+
+
+def project_member_management(request, project_id=None, user_id=None, add=False):
+    hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+    try:
+        adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+        message = None
+
+        if not project_id:
+            project_id = request.session[constants.SELECTED_PROJECT]
+        else:
+            request.session[constants.USERS] = adapter.get_users()
+            request.session[constants.ROLES] = adapter.get_roles()
+            request.session[constants.SELECTED_PROJECT] = project_id
+
+        if user_id:
+            if add == 'True':
+                roles = request.POST.getlist('roles')
+                adapter.assign_roles(roles, user_id, project_id)
+                message = "Roles assigned successfully."
+            else:
+                roles = request.POST['roles']
+                adapter.revoke_roles(roles.split(","), user_id, project_id)
+                message = "Roles revoked successfully."
+
+        project_users = adapter.get_user_roles_project(project_id, request.session[constants.USERS])
+        request.session[constants.PROJECT_USERS] = project_users
+        return render(request, constants.PROJECT_MEMBER_TEMPLATE, {constants.MESSAGE: message})
+    except Exception as e:
+        if user_id:
+            return render(request, constants.PROJECT_MEMBER_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
+        return core.views.hypervisor_management(request, error_message=e.message)
 
 
 def manage_instances(request, message=None, error_message=None):

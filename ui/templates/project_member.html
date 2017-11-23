@@ -1,0 +1,110 @@
+{% extends "serviceonline_base_template.html" %}
+
+{% block body %}
+<h3 align="center">Project Member Management</h3>
+<hr/>
+<ul class="breadcrumb">
+    {% if request.session.is_django_admin %}
+    <li><a href="{% url 'hypervisor_management'%}">Hypervisor Management</a></li>
+    {% else %}
+    <li><a href="{% url '' %}">Project Management</a></li>
+    {% endif %}
+    <li>Project Members</li>
+</ul>
+<div class="container">
+    <div class="row">
+        <div class="col-md-6">
+            <h3 align="center">Users</h3>
+            {% if request.session.users %}
+            <form method="post" name="assign_role" action="">
+                {% csrf_token %}
+                <table class="table table-hover" align="left">
+                    <tr>
+                        <th>User Name</th>
+                        <th> Role</th>
+                        <th></th>
+                        <th></th>
+                    </tr>
+                    {% for user in request.session.users %}
+                    <tr>
+                        <td>
+                            {% if user.user_full_name %}{{ user.user_full_name }}{% else %}{{ user.username}}
+                            {% endif %}
+                        </td>
+
+                        <td>
+                            <select class="form-control" multiple name="roles" required>
+
+                                {% for role in request.session.roles %}
+                                <option value="{{ role.role_id }}">{{ role.role_name }}</option>
+                                {% endfor %}
+                            </select>
+                        <td>
+                            <button class="btn btn-primary" type="button"
+                                    onclick="submit_assign_role('{{user.user_id}}')">Add
+                            </button>
+                        </td>
+
+                        </td>
+                    </tr>
+                    {% endfor %}
+                </table>
+            </form>
+            {% endif %}
+        </div>
+
+        <div class="col-md-6">
+
+            <h3 align="center">Users in Project</h3>
+            <form name="revoke_role" method="post">
+                {% csrf_token %}
+                <input type="hidden" name="roles" value=""/>
+                {% if request.session.project_users %}
+                <table class="table table-hover" align="left">
+                    <tr>
+                        <th>User Name</th>
+                        <th>Role</th>
+                        <th></th>
+
+                    </tr>
+                    {% for user in request.session.project_users %}
+                    <tr>
+                        <td>{% if user.user_full_name %}{{ user.user_full_name }}{% else %}{{ user.username}}{% endif %}
+                        </td>
+                        <td>{{ user.roles | join:", " }}</td>
+                        <td>
+                            <button type="button" onclick="submit_revoke_role('{{user.user_id}}', '{{ user.role_ids | join:','}}')">
+                                X
+                            </button>
+                        </td>
+                    </tr>
+
+                    {% endfor %}
+                </table>
+                {% endif %}
+            </form>
+            <script>
+            function submit_revoke_role(user_id, roles) {
+
+                var confirm_result = confirm("Are you sure to revoke roles for user ?");
+                if (confirm_result == true)
+                {
+                    document.revoke_role.roles.value = roles;
+                    document.revoke_role.action = "{% url 'project_member'%}" + user_id + "/" + "False/";
+                    document.revoke_role.submit();
+                }
+            }
+
+            function submit_assign_role(user_id) {
+                document.assign_role.action = "{% url 'project_member'%}" + user_id + "/" + "True/";
+                document.assign_role.submit();
+            }
+
+
+
+            </script>
+        </div>
+    </div>
+
+</div>
+{% endblock %}

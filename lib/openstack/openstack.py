@@ -36,7 +36,7 @@ class Openstack(sol_adapter.SolAadapter):
                                            constants.HYPERVISOR_SOLUSER_PASSWORD,
                                            constants.HYPERVISOR_SOLUSER_EMAIL,
                                            constants.HYPERVISOR_SOLUSER_DESCRIPTION,
-                                           keystone.get_roles(self.keystone_client), project_id)
+                                           self.get_roles(self.keystone_client), project_id)
             return {'user_id': user_id, 'user_password': constants.HYPERVISOR_SOLUSER_PASSWORD}
 
         except OpenstackException as oe:
@@ -135,6 +135,26 @@ class Openstack(sol_adapter.SolAadapter):
     def modify_instance(self, instance_id, flavor_id):
         self.load_nova_client()
         return nova.modify_server(self.nova_client, instance_id, flavor_id)
+
+    def get_users(self):
+        self.load_keystone_client()
+        return keystone.list_user(self.keystone_client)
+
+    def get_roles(self):
+        self.load_keystone_client()
+        return keystone.get_roles(self.keystone_client)
+
+    def get_user_roles_project(self, project_id, users=None):
+        self.load_keystone_client()
+        return keystone.list_users_in_project(self.keystone_client, users, project_id)
+
+    def assign_roles(self, roles, user_id, project_id):
+        self.load_keystone_client()
+        return keystone.assign_roles(self.keystone_client, user_id, roles, project_id)
+
+    def revoke_roles(self, roles, user_id, project_id):
+        self.load_keystone_client()
+        return keystone.revoke_roles(self.keystone_client, user_id, roles, project_id)
 
     def load_nova_client(self):
         if not self.nova_client:

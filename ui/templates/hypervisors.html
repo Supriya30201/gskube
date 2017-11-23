@@ -132,6 +132,7 @@ $(document).ready( function() {
         }
         if(select_box.value=="--select--")
             return;
+
         document.hypervisor_management.action = select_box.value + document.hypervisor_management.select_project.value + "/";
         document.hypervisor_management.method = "get";
         document.hypervisor_management.submit();
@@ -215,7 +216,7 @@ $(document).ready( function() {
                     <select name="project_action" onchange="selected_project_action(this)" disabled>
                         <option value="--select--">--select--</option>
                         <option value="">Modify Quotas</option>
-                        <option value="">Project Members</option>
+                        <option value="{% url 'project_member'%}">Project Members</option>
                         <option value="">Edit project</option>
                         <option value="{% url 'delete_project'%}">Delete Project</option>
                     </select>

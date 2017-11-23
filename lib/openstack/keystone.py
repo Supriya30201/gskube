@@ -5,9 +5,7 @@ from exception.openstack_exception import OpenstackException
 from exception.openstack_session_exception import OpenstackSessionException
 from keystoneclient.v3 import client as v3_client
 from keystoneclient.auth.identity import v3
-from keystoneclient.v3.services import Service
-from keystoneclient.v3.endpoints import Endpoint
-
+from core import constants
 
 # Unscoped Token using v2
 def unscoped_login(protocol, host, port, username, password):
@@ -70,19 +68,21 @@ def list_projects(client, v2_api=True):
 
 def get_user_roles(client, user_id, project_id):
     try:
+        user_role_ids = []
         user_roles = []
         users_role_list = client.roles.list(user=user_id, project=project_id)
 
         for role in users_role_list:
+            user_role_ids.append(role.id)
             user_roles.append(role.name)
-        return user_roles
+        return user_roles, user_role_ids
     except Exception as e:
         raise OpenstackException(message="Exception while getting roles for specified project and user : " + e.message,
                                  exception=e)
 
 
 def is_admin(client, user_id, project_id):
-    users_project_roles = get_user_roles(client, user_id, project_id)
+    users_project_roles, _ = get_user_roles(client, user_id, project_id)
     for role in users_project_roles:
         if "admin" in role.lower():
             return True
@@ -103,7 +103,13 @@ def create_user(client, name, password, email, description, roles=None, project_
 def get_roles(client):
     try:
         roles = client.roles.list()
-        return roles
+        role_list = []
+        for role in roles:
+            role_list.append({
+                constants.ROLE_ID: role.id,
+                constants.ROLE_NAME: role.name
+            })
+        return role_list
     except Exception as e:
         raise OpenstackException(message="Exception while getting roles from openstack: " + e.message, exception=e)
 
@@ -114,15 +120,15 @@ def assign_roles(client, user_id, roles, project_id):
             client.roles.grant(role=role, user=user_id, project=project_id)
 
     except Exception as e:
-        raise OpenstackException(message="Exception while assiging roles: " + e.message, exception=e)
+        raise OpenstackException(message=e.message, exception=e)
 
 
-def remove_user_role(client, user_id, roles, project_id):
+def revoke_roles(client, user_id, roles, project_id):
     try:
         for role in roles:
             client.roles.revoke(role=role, user=user_id, project=project_id)
     except Exception as e:
-        raise OpenstackException(message="Exception while removing roles of user: " + e.message, exception=e)
+        raise OpenstackException(message=e.message, exception=e)
 
 
 def create_project(client, domain, project_name, description, project_id=None):
@@ -151,3 +157,35 @@ def delete_project(client, project_id):
     except Exception as e:
         raise OpenstackException(message="Exception while deleting project : " + e.message, exception=e)
 
+
+def list_user(client):
+    try:
+        users = client.users.list()
+        user_list = []
+        for user in users:
+            if user.name == constants.HYPERVISOR_SOLUSER_NAME:
+                continue
+            user_list.append({
+                constants.USER_ID: user.id,
+                constants.USERNAME: user.name,
+                constants.USER_FULL_NAME: None if not hasattr(user, 'description') else user.description
+            })
+        return user_list
+    except Exception as e:
+        raise OpenstackException(message=e.message, exception=e)
+
+
+def list_users_in_project(client, users, project_id):
+    try:
+        if not users:
+            users = list_user(client)
+        project_users = []
+        for user in users:
+            roles, ids = get_user_roles(client, user[constants.USER_ID], project_id)
+            if roles:
+                user[constants.ROLES] = roles
+                user['role_ids'] = ids
+                project_users.append(user)
+        return project_users
+    except Exception as e:
+        raise OpenstackException(message=e.message, exception=e)

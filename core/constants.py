@@ -62,12 +62,21 @@ OPENVPN_TEMP_FOLDER_LOCATION = "openvpn_temp_folder_location"
 
 # User Constants
 USER = "user"
+USERS = "users"
 USERNAME = "username"
 USER_FULL_NAME = "user_full_name"
 USER_EMAIL = "user_email"
 USER_PASSWORD = "user_password"
 DEFAULT_PROJECT = "default_project"
 DEFAULT_HYPERVISOR = "default_hypervisor"
+USER_ID = "user_id"
+PROJECT_USERS = "project_users"
+
+
+# Role constants
+ROLES = "roles"
+ROLE_ID = "role_id"
+ROLE_NAME = "role_name"
 
 
 # Glance Constants
@@ -124,4 +133,4 @@ CREATE_INSTANCE_TEMPLATE = "create_instance.html"
 HYPERVISOR_PREFERENCE_TEMPLATE = "hypervisor_preference.html"
 REQUESTED_INSTANCES_TEMPLATE = "requested_instances.html"
 EXTEND_EXPIRY_TEMPLATE = "extend_expiry.html"
-
+PROJECT_MEMBER_TEMPLATE = "project_member.html"
