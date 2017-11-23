@@ -119,4 +119,36 @@ def stop_server(nova_client, server_id):
         return nova_client.servers.stop(server=server_id)
     except Exception as e:
         logger.error("Exception while stopping server : " + e.message)
-        raise OpenstackException(message="Exception while stopping server : " + e.message, exception=e)
+        raise OpenstackException(e.message, exception=e)
+
+
+def hypervisor_list(nova_client):
+    try:
+        return nova_client.hypervisors.list()
+    except Exception as e:
+        logger.error("Exception while getting hypervisors : " + e.message)
+        raise OpenstackException(message=e.message, exception=e)
+
+
+def get_hypervisor(nova_client, hypervisor):
+    try:
+        return nova_client.hypervisors.get(hypervisor)
+    except Exception as e:
+        logger.error("Exception while getting hypervisor : " + e.message)
+        raise OpenstackException(message=e.message, exception=e)
+
+
+def get_detailed_usage(nova_client, start_date, end_date):
+    try:
+        return nova_client.usage.list(start=start_date, end=end_date, detailed=True)
+    except Exception as e:
+        logger.error("Exception while getting usage details : " + e.message)
+        raise OpenstackException(message=e.message, exception=e)
+
+
+def get_quota_details(nova_client, tenant_id):
+    try:
+        return nova_client.quotas.get(tenant_id=tenant_id)
+    except Exception as e:
+        logger.error("Exception while getting quota details : " + e.message)
+        raise OpenstackException(message=e.message, exception=e)

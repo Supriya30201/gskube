@@ -121,6 +121,16 @@ SMTP_USERNAME = "smtp_username"
 SMTP_PASSWORD = "smtp_password"
 
 
+# Hypervisor stats constants
+TOTAL_MEMORY = "total_memory"
+TOTAL_CPU = "total_cpu"
+TOTAL_DISK = "total_disk"
+USED_MEMORY = "used_memory"
+USED_CPU = "used_cpu"
+USED_DISK = "used_disk"
+TOTAL_HOURS = "total_hours"
+
+
 # Templates
 LOGIN_TEMPLATE = "login_page.html"
 DASHBOARD_TEMPLATE = "dashboard.html"

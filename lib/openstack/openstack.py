@@ -156,10 +156,30 @@ class Openstack(sol_adapter.SolAadapter):
         self.load_keystone_client()
         return keystone.revoke_roles(self.keystone_client, user_id, roles, project_id)
 
+    def load_hypervisors(self):
+        self.load_nova_client()
+        return nova.hypervisor_list(self.nova_client)
+
+    def get_hypervisor(self, hypervisor):
+        self.load_nova_client()
+        return nova.get_hypervisor(self.nova_client, hypervisor)
+
+    def get_detailed_usage(self, start_date, end_date):
+        self.load_nova_client()
+        return nova.get_detailed_usage(self.nova_client, start_date, end_date)
+
+    def get_quota_details(self, tenant_id):
+        self.load_nova_client()
+        return nova.get_quota_details(self.nova_client, tenant_id)
+
     def load_nova_client(self):
         if not self.nova_client:
-            self.nova_client = nova.get_nova_connection(self.protocol, self.host, self.port, self.domain, self.username,
-                                                        self.password, self.project_id)
+            if hasattr(self, "project_id"):
+                self.nova_client = nova.get_nova_connection(self.protocol, self.host, self.port, self.domain,
+                                                            self.username, self.password, self.project_id)
+            else:
+                self.nova_client = nova.get_nova_connection(self.protocol, self.host, self.port, self.domain,
+                                                            self.username, self.password, None)
 
     def load_keystone_client(self, project_id=None):
         if self.keystone_client:
