@@ -158,12 +158,12 @@ def delete_project(client, project_id):
         raise OpenstackException(message="Exception while deleting project : " + e.message, exception=e)
 
 
-def list_user(client):
+def list_user(client, with_sol_user=False):
     try:
         users = client.users.list()
         user_list = []
         for user in users:
-            if user.name == constants.HYPERVISOR_SOLUSER_NAME:
+            if user.name == constants.HYPERVISOR_SOLUSER_NAME and not with_sol_user:
                 continue
             user_list.append({
                 constants.USER_ID: user.id,
@@ -178,7 +178,7 @@ def list_user(client):
 def list_users_in_project(client, users, project_id):
     try:
         if not users:
-            users = list_user(client)
+            users = list_user(client, with_sol_user=True)
         project_users = []
         for user in users:
             roles, ids = get_user_roles(client, user[constants.USER_ID], project_id)

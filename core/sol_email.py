@@ -41,7 +41,7 @@ def send_mail(receiver, subject, message):
         msg.attach(MIMEMultipart("alternative", None, [MIMEText(body)]))
 
         logger.info("Connecting receiver email server.")
-        mail = smtplib.SMTP(email_config[constants.SMTP_SERVER], email_config[constants.SMTP_PORT])
+        mail = smtplib.SMTP(email_config[constants.SMTP_SERVER], str(email_config[constants.SMTP_PORT]))
         logger.info("Connection receiver email server successful.")
 
         mail.ehlo()

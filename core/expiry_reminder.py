@@ -1,7 +1,7 @@
 from db import db_service
 import datetime as datetime_obj
 from datetime import datetime
-import email
+import sol_email
 import logging
 from tabulate import tabulate
 
@@ -38,7 +38,7 @@ def reminder_expiry():
                 message = "Hi " + vm_user.full_name + ", \n\tYour virtual machine '" + instance.instance_name + \
                           "' is going to expire in " + str(remaining_days_to_expire) + \
                           " days.\nPlease check Virtual machine Details below,\n\n" + vm_information_table
-                email.send_mail(receiver=vm_user.email_id, subject=subject, message=message)
+                sol_email.send_mail(receiver=vm_user.email_id, subject=subject, message=message)
                 logger.debug('Expiry alert sent successfully to ' + vm_user.email_id)
     except IOError as e:
         logger.error('Exception while executing Instance Expiry Reminder Job:' + e.message)

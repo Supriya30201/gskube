@@ -38,8 +38,9 @@ def mark_project_selection(request, project_id=None):
         if project['id'] == selected_project:
             request.session[constants.SELECTED_PROJECT] = project
             hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+            hypervisor[constants.PROJECT_ID] = project['id']
             adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
-            token, endpoint_urls, is_admin = adapter.is_admin_for_project(project['id'])
+            token, endpoint_urls, is_admin = adapter.is_admin_for_project()
             request.session[constants.TOKEN] = token
             request.session[constants.ENDPOINT_URLS] = endpoint_urls
             if is_admin:
@@ -68,6 +69,10 @@ def get_selected_hypervisor(request, host):
     for hypervisor in request.session[constants.USER_HYPERVISORS]:
         if hypervisor[constants.HOST] == host:
             return hypervisor
+
+
+def project_management(request):
+    return
 
 
 def create_project(request):

@@ -81,10 +81,10 @@ class Openstack(sol_adapter.SolAadapter):
             })
         return projects
 
-    def is_admin_for_project(self, project_id):
+    def is_admin_for_project(self):
         try:
-            user_id, token, endpoint_urls = self.load_keystone_client(project_id)
-            is_admin = keystone.is_admin(self.keystone_client, user_id, project_id)
+            user_id, token, endpoint_urls = self.load_keystone_client(self.project_id)
+            is_admin = keystone.is_admin(self.keystone_client, user_id, self.project_id)
             return token, endpoint_urls, is_admin
         except Exception as e:
             raise OpenstackException(message=e.message, exception=e)
