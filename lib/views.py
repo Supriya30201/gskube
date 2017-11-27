@@ -75,21 +75,26 @@ def project_management(request):
     return
 
 
-def create_project(request):
-    if request.method == constants.GET:
-        return render(request, constants.CREATE_PROJECT_TEMPLATE)
-
-    hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
-    domain = hypervisor[constants.DOMAIN]
-    name = request.POST["name"]
-    description = request.POST["description"]
+def create_project(request, project_id=None):
     message = None
     error_message = None
     try:
+        if request.method == constants.GET and not project_id:
+            return render(request, constants.CREATE_PROJECT_TEMPLATE)
+
+        hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
         adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
-        adapter.create_project(domain, name, description)
+        if request.method == constants.GET:
+            return render(request, constants.CREATE_PROJECT_TEMPLATE, {'project': adapter.get_project(project_id)})
+
+        project_id = None if constants.PROJECT_ID not in request.POST else request.POST[constants.PROJECT_ID]
+        domain = hypervisor[constants.DOMAIN]
+        name = request.POST["name"]
+        description = request.POST["description"]
+
+        adapter.create_project(name, description, domain=domain, project_id=project_id)
         request.session[constants.PROJECTS] = adapter.get_all_projects()
-        message = 'Project Created Successfully.'
+        message = 'Project created/updated successfully.'
     except OpenstackSessionException as ose:
         if constants.IS_DJANGO_ADMIN in request.session:
             clear_session_variables(request, [constants.PROJECTS, constants.SELECTED_HYPERVISOR_OBJ])

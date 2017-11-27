@@ -102,8 +102,13 @@ class Openstack(sol_adapter.SolAadapter):
         self.load_nova_client()
         return nova.list_flavors(self.nova_client)
 
-    def create_project(self, domain, name, description):
-        keystone.create_project(self.keystone_client, domain, name, description)
+    def create_project(self, name, description, domain=None, project_id=None):
+        self.load_keystone_client()
+        keystone.create_project(self.keystone_client, name, description, domain=domain, project_id=project_id)
+
+    def get_project(self, project_id):
+        self.load_keystone_client()
+        return keystone.get_project(self.keystone_client, project_id)
 
     def create_server(self, server_name, image_id, flavor_id, network_id):
         self.load_nova_client()
