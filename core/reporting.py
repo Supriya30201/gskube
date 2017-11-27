@@ -62,7 +62,6 @@ def load_tenant_wise_report(adapter, timestamp):
                 constants.TOTAL_DISK: tenant_quota.local_gb,
                 constants.TOTAL_MEMORY: tenant_quota.ram,
                 constants.USED_CPU: tenant_usage.total_vcpus_usage / tenant_usage.total_hours,
-                constants.USED_DISK: (tenant_usage.total_local_gb_usage / tenant_usage.total_hours),
                 constants.USED_MEMORY: tenant_usage.total_memory_mb_usage / tenant_usage.total_hours,
                 constants.TOTAL_HOURS: tenant_usage.total_hours
             }
@@ -74,7 +73,6 @@ def load_tenant_wise_report(adapter, timestamp):
                     constants.TOTAL_DISK: server_usage['local_gb'],
                     constants.TOTAL_MEMORY: server_usage['memory_mb'],
                     constants.USED_CPU: server_usage['vcpus'],
-                    constants.USED_DISK: server_usage['local_gb'],
                     constants.USED_MEMORY: server_usage['memory_mb'],
                     constants.TOTAL_HOURS: server_usage['hours']
                 }

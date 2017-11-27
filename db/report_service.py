@@ -32,7 +32,6 @@ def save_project_stats(hypervisor, timestamp, project_id, project_stats):
     project_report.project = db_project
     project_report.time = timestamp
     project_report.total_cpu = project_stats[constants.TOTAL_CPU]
-    project_report.total_disk = project_stats[constants.TOTAL_DISK]
     project_report.total_memory = project_stats[constants.TOTAL_MEMORY]
     project_report.used_cpu = project_stats[constants.USED_CPU]
     project_report.used_disk = project_stats[constants.USED_DISK]
@@ -47,7 +46,6 @@ def save_vm_stats(instance_id, timestamp, vm_stats):
     vm_report.instance = db_instance
     vm_report.time = timestamp
     vm_report.total_cpu = vm_stats[constants.TOTAL_CPU]
-    vm_report.total_disk = vm_stats[constants.TOTAL_DISK]
     vm_report.total_memory = vm_stats[constants.TOTAL_MEMORY]
     vm_report.used_cpu = vm_stats[constants.USED_CPU]
     vm_report.used_disk = vm_stats[constants.USED_DISK]
