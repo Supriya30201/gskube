@@ -180,27 +180,23 @@ def load_hypervisors():
     hypervisors = sol_db.Hypervisor.objects.all()
     hypervisor_list = []
 
-    user = sol_db.User.objects.filter(username=constants.HYPERVISOR_SOLUSER_NAME)
-    if user:
-        user = user.first()
-
     for hypervisor in hypervisors:
-        superuser_created = False
-        if user:
-            hypervisor_user = sol_db.HypervisorUser.objects.filter(user=user.username, hypervisor=hypervisor.id)
-            if hypervisor_user:
-                superuser_created = True
-
-        hypervisor_list.append({
-            'id': hypervisor.id,
-            'host': hypervisor.host,
-            'port': hypervisor.port,
-            'protocol': hypervisor.protocol,
-            'type': hypervisor.type,
-            'has_superuser': superuser_created
-        })
+        if not hypervisor.deleted:
+            hypervisor_list.append({
+                'id': hypervisor.id,
+                'host': hypervisor.host,
+                'port': hypervisor.port,
+                'protocol': hypervisor.protocol,
+                'type': hypervisor.type,
+            })
 
     return hypervisor_list
+
+
+def delete_hypervisor(hypervisor_id):
+    hypervisor = sol_db.Hypervisor.objects.get(id=hypervisor_id)
+    hypervisor.deleted = True
+    hypervisor.save()
 
 
 def get_hypervisor(host):
@@ -214,16 +210,18 @@ def get_hypervisor_of_user(username):
     user_hypervisors = []
     hypervisors = hypervisors.all()
     for hypervisor in hypervisors:
-        user_hypervisors.append({constants.TYPE: hypervisor.hypervisor.type,
-                                 constants.PROTOCOL: hypervisor.hypervisor.protocol,
-                                 constants.HOST: hypervisor.hypervisor.host,
-                                 constants.PORT: hypervisor.hypervisor.port})
+        if not hypervisor.deleted:
+            user_hypervisors.append({constants.TYPE: hypervisor.hypervisor.type,
+                                     constants.PROTOCOL: hypervisor.hypervisor.protocol,
+                                     constants.HOST: hypervisor.hypervisor.host,
+                                     constants.PORT: hypervisor.hypervisor.port})
     return user_hypervisors
 
 
 def create_hypervisor(hypervisor_type, protocol, host, port):
     hypervisor, _ = sol_db.Hypervisor.objects.get_or_create(type=hypervisor_type, host=str(host), protocol=protocol)
     hypervisor.port = port
+    hypervisor.deleted = False
     hypervisor.save()
     return hypervisor
 
@@ -385,8 +383,11 @@ def set_smtp_configuration(server, port, username, password):
     }
 
 
-def get_sol_user_id(hypervisor):
-    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
-    hypervisor_user = sol_db.HypervisorUser.objects.filter(hypervisor=db_hypervisor.id,
+def get_sol_user_id(hypervisor=None, hypervisor_id=None):
+    if not hypervisor_id:
+        db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
+        hypervisor_id = db_hypervisor.id
+
+    hypervisor_user = sol_db.HypervisorUser.objects.filter(hypervisor=hypervisor_id,
                                                            user=constants.HYPERVISOR_SOLUSER_NAME).first()
     return hypervisor_user.hypervisor_user_id

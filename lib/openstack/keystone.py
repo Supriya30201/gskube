@@ -101,6 +101,13 @@ def create_user(client, name, password, email, description, roles=None, project_
         raise OpenstackException(message="Exception while creating user in openstack : " + e.message, exception=e)
 
 
+def delete_user(client, user_id):
+    try:
+        client.users.delete(user=user_id)
+    except Exception as e:
+        raise OpenstackException(message=e.message, exception=e)
+
+
 def get_roles(client):
     try:
         roles = client.roles.list()

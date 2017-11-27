@@ -266,7 +266,17 @@ def openvpn_configuration(request):
         return render(request, constants.OPENVPN_TEMPLATE, {'openvpn_conf': openvpn_conf})
 
 
-def hypervisor_management(request, message=None, error_message=None):
+def hypervisor_management(request, hypervisor_id=None, message=None, error_message=None):
+    if hypervisor_id:
+        sol_user_id = db_service.get_sol_user_id(hypervisor_id=hypervisor_id)
+        hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+        try:
+            adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+            adapter.delete_user(sol_user_id)
+            db_service.delete_hypervisor(hypervisor_id)
+            message = "Hypervisor removed successfully."
+        except Exception as e:
+            error_message = e.message
 
     return render(request, constants.HYPERVISORS_TEMPLATE, {'hypervisors': db_service.load_hypervisors(),
                                                             constants.MESSAGE: message,

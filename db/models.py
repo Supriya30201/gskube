@@ -20,6 +20,7 @@ class Hypervisor(models.Model):
     type = models.CharField(max_length=50)
     port = models.IntegerField(null=True, blank=True)
     protocol = models.CharField(max_length=50)
+    deleted = models.BooleanField(default=False)
 
 
 class Project(models.Model):

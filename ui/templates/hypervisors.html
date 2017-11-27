@@ -235,12 +235,7 @@ $(document).ready( function() {
                     <select name="options" onchange="redirect_to_option(this)">
                         <option value="--select--">--select--</option>
                         <option value="{% url 'load_hypervisor_user' hypervisor_id=hypervisor.id%}">Users</option>
-                        {% if hypervisor.has_superuser %}
-                        <option value="remove_superuser">Remove Super User</option>
-                        {% else %}
-                        <option value="remove_superuser">Add Super User</option>
-                        {% endif %}
-                        <option value="delete">Delete</option>
+                        <option value="{% url 'delete_hypervisor' hypervisor_id=hypervisor.id%}">Delete</option>
                     </select>
                 </td>
             </tr>

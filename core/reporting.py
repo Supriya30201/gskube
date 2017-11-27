@@ -13,15 +13,16 @@ def load_hypervisors_with_soluser():
     hypervisor_users = report_service.get_hypervisors_with_soluser()
     hypervisors = []
     for hypervisor_user in hypervisor_users:
-        hypervisors.append({
-            constants.TYPE: hypervisor_user.hypervisor.type,
-            constants.PROTOCOL: hypervisor_user.hypervisor.protocol,
-            constants.HOST: hypervisor_user.hypervisor.host,
-            constants.PORT: hypervisor_user.hypervisor.port,
-            constants.DOMAIN: hypervisor_user.domain,
-            constants.USERNAME: hypervisor_user.username,
-            constants.PASSWORD: services.decode(hypervisor_user.password)
-        })
+        if not hypervisor_user.hypervisor.deleted:
+            hypervisors.append({
+                constants.TYPE: hypervisor_user.hypervisor.type,
+                constants.PROTOCOL: hypervisor_user.hypervisor.protocol,
+                constants.HOST: hypervisor_user.hypervisor.host,
+                constants.PORT: hypervisor_user.hypervisor.port,
+                constants.DOMAIN: hypervisor_user.domain,
+                constants.USERNAME: hypervisor_user.username,
+                constants.PASSWORD: services.decode(hypervisor_user.password)
+            })
 
     return hypervisors
 
@@ -90,3 +91,4 @@ def load_report_data():
     for hypervisor in hypervisors:
         adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
         load_hypervisors_stats(adapter, timestamp)
+        load_tenant_wise_report(adapter, timestamp)
