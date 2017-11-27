@@ -71,6 +71,7 @@ def auto_vm_deletion():
                                                    "machine Details below,\n\n" + vm_information_table + \
                           "\n\nFor any issue, please get in touch with Administrator."
                 sol_email.send_mail(receiver=instance.user.email_id, subject=subject, message=message)
+                db_service.remove_instance(instance_id=instance.instance_id)
                 logger.debug('Instance ' + instance.instance_name + ' has deleted')
     except Exception as e:
         logger.error('Exception while executing deleting expired instances job: ' + e.message)
