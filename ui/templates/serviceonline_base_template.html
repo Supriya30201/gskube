@@ -339,7 +339,7 @@
             <ul class="nav navbar-nav navbar-left options" id="options_identity">
                 {% if request.session.is_admin and not request.session.is_django_admin %}
                 <li>
-                    <a href="" class="">Projects </a>
+                    <a href="{% url 'manage_projects'%}" class="">Projects </a>
                 </li>
                 {% endif %} {% if request.session.is_django_admin %}
                 <li>

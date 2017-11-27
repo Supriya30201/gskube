@@ -35,4 +35,5 @@ urlpatterns = [
         url(r'^$', views.manage_quota, name="manage_quota"),
         url(r'^(?P<project_id>[\w\d-]+)/$', views.manage_quota, name="manage_quota")
     ])),
+    url(r'^project_management/$', views.project_management, name="manage_projects"),
 ]

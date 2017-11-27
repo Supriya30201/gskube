@@ -77,12 +77,14 @@ class Openstack(sol_adapter.SolAadapter):
         return projects, unscoped_auth
 
     def get_all_projects(self):
+        self.load_keystone_client(self)
         projects_response = keystone.list_projects(self.keystone_client, False)
         projects = []
         for project in projects_response:
             projects.append({
                 'id': project.id,
-                'name': project.name
+                'name': project.name,
+                'description': project.description
             })
         return projects
 

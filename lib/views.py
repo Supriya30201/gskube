@@ -42,6 +42,8 @@ def mark_project_selection(request, project_id=None):
             adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
             token, endpoint_urls, is_admin = adapter.is_admin_for_project()
             request.session[constants.TOKEN] = token
+            hypervisor[constants.TOKEN] = token
+            request.session[constants.SELECTED_HYPERVISOR_OBJ] = hypervisor
             request.session[constants.ENDPOINT_URLS] = endpoint_urls
             if is_admin:
                 request.session[constants.IS_ADMIN] = True
@@ -71,8 +73,15 @@ def get_selected_hypervisor(request, host):
             return hypervisor
 
 
-def project_management(request):
-    return
+def project_management(request, message=None, error_message=None):
+    try:
+        hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+        adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+        projects = adapter.get_all_projects()
+        return render(request, constants.PROJECT_MANAGEMENT_TEMPLATE, {'projects': projects, constants.MESSAGE: message,
+                                                                       constants.ERROR_MESSAGE: error_message})
+    except Exception as e:
+        return render(request, constants.PROJECT_MANAGEMENT_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
 
 
 def create_project(request, project_id=None):
@@ -104,6 +113,7 @@ def create_project(request, project_id=None):
 
     if constants.IS_DJANGO_ADMIN in request.session:
         return core.views.hypervisor_management(request, message=message, error_message=error_message)
+    return project_management(request, message=message, error_message=error_message)
 
 
 def update_project(request):
@@ -123,6 +133,7 @@ def update_project(request):
 
     if constants.IS_DJANGO_ADMIN in request.session:
         return core.views.hypervisor_management(request, message=message, error_message=error_message)
+    return project_management(request, message=message, error_message=error_message)
 
 
 def delete_project(request, project_id=None):
@@ -133,6 +144,7 @@ def delete_project(request, project_id=None):
         adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
         adapter.delete_project(project_id)
         request.session[constants.PROJECTS] = adapter.get_all_projects()
+        message = "Project deleted successfully."
     except OpenstackSessionException as ose:
         if constants.IS_DJANGO_ADMIN in request.session:
             clear_session_variables(request, [constants.PROJECTS, constants.SELECTED_HYPERVISOR_OBJ])
@@ -142,6 +154,7 @@ def delete_project(request, project_id=None):
 
     if constants.IS_DJANGO_ADMIN in request.session:
         return core.views.hypervisor_management(request, message=message, error_message=error_message)
+    return project_management(request, message=message, error_message=error_message)
 
 
 def project_member_management(request, project_id=None, user_id=None, add=False):
@@ -173,7 +186,9 @@ def project_member_management(request, project_id=None, user_id=None, add=False)
     except Exception as e:
         if user_id:
             return render(request, constants.PROJECT_MEMBER_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
-        return core.views.hypervisor_management(request, error_message=e.message)
+        if constants.IS_DJANGO_ADMIN in request.session:
+            return core.views.hypervisor_management(request, error_message=e.message)
+        return project_management(request, error_message=e.message)
 
 
 def manage_quota(request, project_id=None):
@@ -200,10 +215,13 @@ def manage_quota(request, project_id=None):
             constants.SERVER_GROUP_MEMBERS: request.POST[constants.SERVER_GROUP_MEMBERS]
         }
         adapter.set_quota_details(request.session[constants.SELECTED_PROJECT], quotas)
-        return core.views.hypervisor_management(request, message="Quotas updated successfully.")
+        if constants.IS_DJANGO_ADMIN in request.session:
+            return core.views.hypervisor_management(request, message="Quotas updated successfully.")
+        return project_management(request, message="Quotas updated successfully.")
     except Exception as e:
-        return core.views.hypervisor_management(request, error_message=e.message)
-
+        if constants.IS_DJANGO_ADMIN in request.session:
+            return core.views.hypervisor_management(request, error_message=e.message)
+        return project_management(request, error_message=e.message)
 
 
 def manage_instances(request, message=None, error_message=None):

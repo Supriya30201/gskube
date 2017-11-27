@@ -7,7 +7,7 @@
     {% if request.session.is_django_admin %}
     <li><a href="{% url 'hypervisor_management'%}">Hypervisor Management</a></li>
     {% else %}
-    <li><a href="{% url '' %}">Project Management</a></li>
+    <li><a href="{% url 'manage_projects' %}">Project Management</a></li>
     {% endif %}
     <li>Project Members</li>
 </ul>

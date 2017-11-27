@@ -204,17 +204,17 @@ def get_hypervisor(host):
 
 
 def get_hypervisor_of_user(username):
-    hypervisors = sol_db.HypervisorUser.objects.filter(user=username)
-    if not hypervisors:
+    db_user_hypervisors = sol_db.HypervisorUser.objects.filter(user=username)
+    if not db_user_hypervisors:
         return []
     user_hypervisors = []
-    hypervisors = hypervisors.all()
-    for hypervisor in hypervisors:
-        if not hypervisor.deleted:
-            user_hypervisors.append({constants.TYPE: hypervisor.hypervisor.type,
-                                     constants.PROTOCOL: hypervisor.hypervisor.protocol,
-                                     constants.HOST: hypervisor.hypervisor.host,
-                                     constants.PORT: hypervisor.hypervisor.port})
+    db_user_hypervisors = db_user_hypervisors.all()
+    for db_user_hypervisor in db_user_hypervisors:
+        if not db_user_hypervisor.hypervisor.deleted:
+            user_hypervisors.append({constants.TYPE: db_user_hypervisor.hypervisor.type,
+                                     constants.PROTOCOL: db_user_hypervisor.hypervisor.protocol,
+                                     constants.HOST: db_user_hypervisor.hypervisor.host,
+                                     constants.PORT: db_user_hypervisor.hypervisor.port})
     return user_hypervisors
 
 
