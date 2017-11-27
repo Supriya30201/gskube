@@ -27,7 +27,8 @@ def save_hypervisor_stats(hypervisor, timestamp, hypervisor_stats):
 
 
 def save_project_stats(hypervisor, timestamp, project_id, project_stats):
-    db_project = sol_db.Project.objects.filter(hypervisor=hypervisor, project_id=project_id).first()
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
+    db_project = sol_db.Project.objects.filter(hypervisor=db_hypervisor.id, project_id=project_id).first()
     project_report = sol_db.ProjectReport()
     project_report.project = db_project
     project_report.time = timestamp

@@ -114,21 +114,6 @@ class ProjectReport(models.Model):
     used_disk = models.FloatField()
 
 
-class UserReport(models.Model):
-    """
-        User Report model will be used to store user level report of a hypervisor.
-    """
-    time = models.DateTimeField(default=timezone.now())
-    user = models.ForeignKey(User, on_delete=models.DO_NOTHING, null=True)
-    project_report = models.ForeignKey(ProjectReport, on_delete=models.DO_NOTHING, null=True)
-    total_memory = models.FloatField()
-    total_cpu = models.FloatField()
-    total_disk = models.FloatField(blank=True, null=True)
-    used_memory = models.FloatField()
-    used_cpu = models.FloatField()
-    used_disk = models.FloatField()
-
-
 class VMReport(models.Model):
     """
         VMReport model will be used to store VM level report of a hypervisor.
@@ -138,7 +123,7 @@ class VMReport(models.Model):
     total_hours = models.FloatField()
     total_memory = models.FloatField()
     total_cpu = models.FloatField()
-    total_disk = models.FloatField()
+    total_disk = models.FloatField(blank=True, null=True)
     used_memory = models.FloatField()
     used_cpu = models.FloatField()
     used_disk = models.FloatField()
