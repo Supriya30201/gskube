@@ -410,6 +410,17 @@ def instance_action(request, instance_id, action):
         return manage_instances(request, error_message=e.message)
 
 
+def manage_images(request, message=None, error_message=None):
+    try:
+        hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+        adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+        images = adapter.get_image_list(request.session[constants.ENDPOINT_URLS], request.session[constants.TOKEN])
+        return render(request, constants.IMAGES_TEMPLATE, {constants.IMAGES: images, constants.MESSAGE: message,
+                                                           constants.ERROR_MESSAGE: error_message})
+    except Exception as e:
+        return render(request, constants.IMAGES_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
+
+
 def clear_session_variables(request, variables):
     for variable in variables:
         if variable in request.session:

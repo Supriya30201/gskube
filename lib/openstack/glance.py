@@ -19,7 +19,7 @@ def image_list(client):
                 constants.IMAGE_ID: image.id,
                 constants.IMAGE_NAME: image.name,
                 constants.IMAGE_STATUS: image.status,
-                constants.IMAGE_SIZE: image.size/100000
+                constants.IMAGE_SIZE: image.size/1000000
             })
         return images_list
     except Exception as e:

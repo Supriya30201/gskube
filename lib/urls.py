@@ -21,6 +21,7 @@ urlpatterns = [
     url(r'^load_hypervisor_projects/$', views.load_hypervisor_projects, name='load_hypervisor_projects'),
     url(r'^mark_project_selection/$', views.mark_project_selection, name='mark_project_selection'),
     url(r'^manage_instances/$', views.manage_instances, name='manage_instances'),
+    url(r'^manage_images/$', views.manage_images, name='manage_images'),
     url(r'^create_instance/$', views.create_instance, name='create_instance'),
     url(r'hypervisor_preference/', include([
         url(r'^$', views.hypervisor_preference, name="hypervisor_preference"),

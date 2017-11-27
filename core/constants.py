@@ -87,6 +87,7 @@ IMAGE_SIZE = "image_size"
 IMAGE_STATUS = "image_status"
 
 
+
 # Neutron Constants
 NETWORKS = "networks"
 NETWORK_ID = "network_id"
@@ -158,3 +159,4 @@ EXTEND_EXPIRY_TEMPLATE = "extend_expiry.html"
 PROJECT_MEMBER_TEMPLATE = "project_member.html"
 SMTP_CONFIGURATION_TEMPLATE = "smtp_configuration.html"
 MANAGE_QUOTA_TEMPLATE = "manage_quota.html"
+IMAGES_TEMPLATE = "images.html"

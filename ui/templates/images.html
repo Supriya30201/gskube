@@ -1,0 +1,49 @@
+{% extends "serviceonline_base_template.html" %}
+
+{% block body %}
+
+{% load static %}
+<head>
+      <style>
+        #imglist1_length,
+        #imglist1_info{
+            float:left;
+            margin-left:5px;
+        }
+
+        #imglist1_filter,
+        #imglist1_paginate{
+            float:right;
+            margin-right:5px;
+        }
+
+
+    </style>
+</head>
+
+<div class="container" ><h3 style="font-family:Times New Roman; padding-left:400px; ">Image Information</h3>
+
+    <table class="table table-striped table-bordered table-hover display" id="imglist1" cellspacing="0" width="100%">
+        <thead>
+        <tr>
+            <th>Name</th>
+            <th>Status</th>
+            <th>Size</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for image in images %}
+        <tr>
+            <td>{{ image.image_name }}</td>
+            <td>{{ image.image_status }}</td>
+            <td>{{ image.image_size }} MB</td>
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+    <script>
+    $('#imglist1').dataTable();
+  </script>
+</div>
+
+{% endblock %}
