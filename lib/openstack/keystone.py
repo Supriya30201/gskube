@@ -7,6 +7,7 @@ from keystoneclient.v3 import client as v3_client
 from keystoneclient.auth.identity import v3
 from core import constants
 
+
 # Unscoped Token using v2
 def unscoped_login(protocol, host, port, username, password):
     try:
@@ -131,7 +132,17 @@ def revoke_roles(client, user_id, roles, project_id):
         raise OpenstackException(message=e.message, exception=e)
 
 
-def create_project(client, domain, project_name, description, project_id=None):
+def get_project(client, project_id):
+    try:
+        project = client.projects.get(project=project_id)
+        return {'project_id': project_id, 'project_name': project.name, 'project_description': project.description,
+                'enabled': project.enabled, 'is_domain': project.is_domain, 'domain_id': project.domain_id,
+                'parent_id': project.parent_id}
+    except Exception as e:
+        raise OpenstackException(message="Exception while getting project information : " + e.message, exception=e)
+
+
+def create_project(client, project_name, description, domain=None, project_id=None):
     """
     If project_id is passed, method will update project.
     :param client:

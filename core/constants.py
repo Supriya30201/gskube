@@ -129,6 +129,12 @@ USED_MEMORY = "used_memory"
 USED_CPU = "used_cpu"
 USED_DISK = "used_disk"
 TOTAL_HOURS = "total_hours"
+FIXED_IPS = "fixed_ips"
+FLOATING_IPS = "floating_ips"
+SECURITY_GROUPS = "security_groups"
+SECURITY_GROUP_RULES = "security_group_rules"
+SERVER_GROUPS = "server_groups"
+SERVER_GROUP_MEMBERS = "server_group_members"
 
 
 # Templates
@@ -151,3 +157,4 @@ REQUESTED_INSTANCES_TEMPLATE = "requested_instances.html"
 EXTEND_EXPIRY_TEMPLATE = "extend_expiry.html"
 PROJECT_MEMBER_TEMPLATE = "project_member.html"
 SMTP_CONFIGURATION_TEMPLATE = "smtp_configuration.html"
+MANAGE_QUOTA_TEMPLATE = "manage_quota.html"

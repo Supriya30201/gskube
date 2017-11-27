@@ -9,7 +9,7 @@ from core import constants
 
 class Openstack(sol_adapter.SolAadapter):
     def __init__(self, hypervisor_details):
-        if dict:
+        if hypervisor_details:
             self.protocol = str(hypervisor_details[constants.PROTOCOL])
             self.host = str(hypervisor_details[constants.HOST])
             self.port = str(hypervisor_details[constants.PORT])
@@ -18,9 +18,10 @@ class Openstack(sol_adapter.SolAadapter):
                 self.username = str(hypervisor_details[constants.USERNAME])
                 self.password = str(hypervisor_details[constants.PASSWORD])
                 self.keystone_client = None
-            else:
+
+            if constants.TOKEN in hypervisor_details:
                 self.keystone_client = keystone.get_client(self.protocol, self.host, self.port,
-                                                           str(hypervisor_details['token']))
+                                                           str(hypervisor_details[constants.TOKEN]))
             if constants.PROJECT_ID in hypervisor_details:
                 self.project_id = str(hypervisor_details[constants.PROJECT_ID])
 
@@ -101,8 +102,13 @@ class Openstack(sol_adapter.SolAadapter):
         self.load_nova_client()
         return nova.list_flavors(self.nova_client)
 
-    def create_project(self, domain, name, description):
-        keystone.create_project(self.keystone_client, domain, name, description)
+    def create_project(self, name, description, domain=None, project_id=None):
+        self.load_keystone_client()
+        keystone.create_project(self.keystone_client, name, description, domain=domain, project_id=project_id)
+
+    def get_project(self, project_id):
+        self.load_keystone_client()
+        return keystone.get_project(self.keystone_client, project_id)
 
     def create_server(self, server_name, image_id, flavor_id, network_id):
         self.load_nova_client()
@@ -168,9 +174,26 @@ class Openstack(sol_adapter.SolAadapter):
         self.load_nova_client()
         return nova.get_detailed_usage(self.nova_client, start_date, end_date)
 
-    def get_quota_details(self, tenant_id):
+    def get_quota_details(self, tenant_id, limited=False):
         self.load_nova_client()
-        return nova.get_quota_details(self.nova_client, tenant_id)
+        quotas = nova.get_quota_details(self.nova_client, tenant_id)
+        if not limited:
+            return quotas
+        return {
+            constants.TOTAL_CPU: quotas.cores,
+            constants.TOTAL_MEMORY: quotas.ram,
+            constants.FIXED_IPS: quotas.fixed_ips,
+            constants.FLOATING_IPS: quotas.floating_ips,
+            constants.INSTANCES: quotas.instances,
+            constants.SECURITY_GROUPS: quotas.security_groups,
+            constants.SECURITY_GROUP_RULES: quotas.security_group_rules,
+            constants.SERVER_GROUPS: quotas.server_groups,
+            constants.SERVER_GROUP_MEMBERS: quotas.server_group_members
+        }
+
+    def set_quota_details(self, tenant_id, quotas):
+        self.load_nova_client()
+        nova.set_quota_details(self.nova_client, tenant_id, quotas)
 
     def load_nova_client(self):
         if not self.nova_client:

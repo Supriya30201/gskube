@@ -4,7 +4,10 @@ from . import views
 
 
 urlpatterns = [
-    url(r'^create_project/$', views.create_project, name='create_project'),
+    url(r'^create_project/', include([
+        url(r'^$', views.create_project, name='create_project'),
+        url(r'^(?P<project_id>[\w\d-]+)/$', views.create_project, name="create_project")
+    ])),
     url(r'^delete_project/', include([
         url(r'^$', views.delete_project, name="delete_project"),
         url(r'^(?P<project_id>[\w\d-]+)/$', views.delete_project, name="delete_project")
@@ -27,4 +30,8 @@ urlpatterns = [
     url(r'instance_action/(?P<instance_id>[\w\d._-]+)/(?P<action>[\w]+)/$', views.instance_action,
         name="instance_action"),
     url(r'^extend_expiry/$', views.get_instances_for_extend_expiry, name="extend_expiry"),
+    url(r'^manage_quota/', include([
+        url(r'^$', views.manage_quota, name="manage_quota"),
+        url(r'^(?P<project_id>[\w\d-]+)/$', views.manage_quota, name="manage_quota")
+    ])),
 ]

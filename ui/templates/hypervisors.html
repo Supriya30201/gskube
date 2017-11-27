@@ -125,7 +125,8 @@ $(document).ready( function() {
 
     function selected_project_action(select_box){
         if(select_box.options[select_box.selectedIndex].text=="Delete Project"){
-            if(!confirm("Are you sure you want to delete project \'{{ request.session.selected_project }}\' ?")){
+            project_selection = document.hypervisor_management.select_project
+            if(!confirm("Are you sure you want to delete project \'" + project_selection.options[project_selection.selectedIndex].text + "\' ?")){
                 select_box.selectedIndex = 0;
                 return;
             }
@@ -215,9 +216,9 @@ $(document).ready( function() {
                 <td>
                     <select name="project_action" onchange="selected_project_action(this)" disabled>
                         <option value="--select--">--select--</option>
-                        <option value="">Modify Quotas</option>
+                        <option value="{% url 'manage_quota'%}">Modify Quotas</option>
                         <option value="{% url 'project_member'%}">Project Members</option>
-                        <option value="">Edit project</option>
+                        <option value="{% url 'create_project'%}">Edit project</option>
                         <option value="{% url 'delete_project'%}">Delete Project</option>
                     </select>
                 </td>

@@ -1,0 +1,86 @@
+{% extends "serviceonline_base_template.html" %}
+
+{% block body %}
+
+
+<div class="container"><h3 align="center">Edit Quota Details</h3><br/>
+
+    <hr/>
+    <ul class="breadcrumb">
+        {% if request.session.is_django_admin %}
+        <li><a href="{% url 'hypervisor_management'%}">Hypervisor Management</a></li>
+        {% else %}
+        <li><a href="{% url '' %}">Project Management</a></li>
+        {% endif %}
+        <li>Modify Quota</li>
+    </ul>
+
+    <div align="center">
+        <form method="POST" name="view_quota" action="{% url 'manage_quota' %}">
+            {% csrf_token %}
+            <table width="60%" style="background-color:rgba(245, 245, 245, 0.36);">
+                <tr>
+                    <td class="trp">Cores :</td>
+                    <td class="trp"><input class="form-control form-controlcss" type="text" pattern="([1-9][0-9]*)"
+                                           title="Non-zero and Non-negative value" name="total_cpu" value="{{quotas.total_cpu}}"
+                                           required></td>
+                </tr>
+                <tr>
+                    <td class="trp">RAM(MB) :</td>
+                    <td class="trp"><input class="form-control form-controlcss" type="text" pattern="([1-9][0-9]*)"
+                                           title="Non-zero and Non-negative value" name="total_memory" value="{{quotas.total_memory}}" required>
+                    </td>
+                </tr>
+                <tr>
+                    <td class="trp">Instances :</td>
+                    <td class="trp"><input class="form-control form-controlcss" type="text" pattern="([1-9][0-9]*)"
+                                           title="Non-zero and Non-negative value" name="instances"
+                                           value="{{quotas.instances}}" required></td>
+                </tr>
+                <tr>
+                    <td class="trp">Floating Ips :</td>
+                    <td class="trp"><input class="form-control form-controlcss" type="text" pattern="([1-9][0-9]*)"
+                                           title="Non-zero and Non-negative value" name="floating_ips"
+                                           value="{{quotas.floating_ips}}" required></td>
+                </tr>
+                <tr>
+                    <td class="trp">Fixed Ips :</td>
+                    <td class="trp"><input class="form-control form-controlcss" type="text" pattern="([1-9][0-9]*)"
+                                           title="Non-zero and Non-negative value" name="fixed_ips" value="{{quotas.fixed_ips}}"
+                                           required></td>
+                </tr>
+                <tr>
+                    <td class="trp">Security Groups :</td>
+                    <td class="trp"><input class="form-control form-controlcss" type="text" pattern="([1-9][0-9]*)"
+                                           title="Non-zero and Non-negative value"
+                                           name="security_groups" value="{{quotas.security_groups}}" required></td>
+                </tr>
+                <tr>
+                    <td class="trp">Security Group Rules :</td>
+                    <td class="trp"><input class="form-control form-controlcss" type="text" pattern="([1-9][0-9]*)"
+                                           title="Non-zero and Non-negative value" name="security_group_rules"
+                                           value="{{quotas.security_group_rules}}" required></td>
+                </tr>
+                <tr>
+                    <td class="trp">Server Group :</td>
+                    <td class="trp"><input class="form-control form-controlcss" type="text" pattern="([1-9][0-9]*)"
+                                           title="Non-zero and Non-negative value" name="server_groups"
+                                           value="{{quotas.server_groups}}" required></td>
+                </tr>
+                <tr>
+                    <td class="trp">Server Group Members :</td>
+                    <td class="trp"><input class="form-control form-controlcss" type="text" pattern="([1-9][0-9]*)"
+                                           title="Non-zero and Non-negative value" name="server_group_members"
+                                           value="{{quotas.server_group_members}}" required></td>
+                </tr>
+            </table>
+
+            <br>
+
+            <input class="btn btn-primary" style="margin-bottom: 80px;" type="submit" value="Submit"
+                   align="center"/>
+
+        </form>
+    </div>
+</div>
+{% endblock %}
