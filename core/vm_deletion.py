@@ -61,7 +61,7 @@ def auto_vm_deletion():
                 subject = 'SOL (deleted): Instance ' + instance.instance_name + ' has deleted.'
                 vm_information_table = tabulate(
                     [["Instance Name : ", instance.instance_name],
-                     ["Hypervisor : ", instance.hypervisor.host],
+                     ["Hypervisor : ", instance.project.hypervisor.host],
                      ["Project : ", instance.project.name],
                      ["Date of Creation:", instance.doc],
                      ["Expiry Date:", instance.doe],

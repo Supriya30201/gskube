@@ -387,6 +387,6 @@ def set_smtp_configuration(server, port, username, password):
 
 def get_sol_user_id(hypervisor):
     db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
-    hypervisor_user = sol_db.HypervisorUser.objects.get(hypervisor=db_hypervisor.id,
-                                                        user=constants.HYPERVISOR_SOLUSER_NAME).first()
+    hypervisor_user = sol_db.HypervisorUser.objects.filter(hypervisor=db_hypervisor.id,
+                                                           user=constants.HYPERVISOR_SOLUSER_NAME).first()
     return hypervisor_user.hypervisor_user_id
