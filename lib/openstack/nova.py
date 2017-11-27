@@ -152,3 +152,16 @@ def get_quota_details(nova_client, tenant_id):
     except Exception as e:
         logger.error("Exception while getting quota details : " + e.message)
         raise OpenstackException(message=e.message, exception=e)
+
+
+def set_quota_details(nova_client, tenant_id, quotas):
+    try:
+        nova_client.quotas.update(tenant_id=tenant_id, cores=quotas[constants.TOTAL_CPU],
+                                  fixed_ips=quotas[constants.FIXED_IPS], floating_ips=quotas[constants.FLOATING_IPS],
+                                  instances=quotas[constants.INSTANCES], ram=quotas[constants.TOTAL_MEMORY],
+                                  security_group_rules=quotas[constants.SECURITY_GROUP_RULES],
+                                  security_groups=quotas[constants.SECURITY_GROUPS],
+                                  server_group_members=quotas[constants.SERVER_GROUP_MEMBERS],
+                                  server_groups=quotas[constants.SERVER_GROUPS])
+    except Exception as e:
+        return OpenstackException(message=e.message, exception=e)

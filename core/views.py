@@ -334,16 +334,18 @@ def load_projects(request, host=None):
         adapter = factory.get_adapter(hypervisor.type, {constants.PROTOCOL: hypervisor.protocol,
                                                         constants.HOST: hypervisor.host,
                                                         constants.PORT: hypervisor.port,
-                                                        constants.DOMAIN: request.POST['domain'],
-                                                        'username': request.POST['username'],
-                                                        'password': request.POST['password']})
+                                                        constants.DOMAIN: request.POST[constants.DOMAIN],
+                                                        constants.USERNAME: request.POST[constants.USERNAME],
+                                                        constants.PASSWORD: request.POST[constants.PASSWORD]})
         token, _ = adapter.generate_admin_auth()
-        request.session[constants.DOMAIN] = request.POST['domain']
+        request.session[constants.DOMAIN] = request.POST[constants.DOMAIN]
         request.session[constants.SELECTED_HYPERVISOR_OBJ] = {constants.PROTOCOL: hypervisor.protocol,
                                                               constants.HOST: hypervisor.host,
                                                               constants.PORT: hypervisor.port,
-                                                              constants.DOMAIN: request.POST['domain'],
-                                                              constants.TOKEN: token, constants.TYPE: hypervisor.type}
+                                                              constants.DOMAIN: request.POST[constants.DOMAIN],
+                                                              constants.TOKEN: token, constants.TYPE: hypervisor.type,
+                                                              constants.USERNAME: request.POST[constants.USERNAME],
+                                                              constants.PASSWORD: request.POST[constants.PASSWORD]}
 
         result = adapter.get_all_projects()
         request.session[constants.PROJECTS] = result

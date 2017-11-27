@@ -215,7 +215,7 @@ $(document).ready( function() {
                 <td>
                     <select name="project_action" onchange="selected_project_action(this)" disabled>
                         <option value="--select--">--select--</option>
-                        <option value="">Modify Quotas</option>
+                        <option value="{% url 'manage_quota' %}">Modify Quotas</option>
                         <option value="{% url 'project_member'%}">Project Members</option>
                         <option value="">Edit project</option>
                         <option value="{% url 'delete_project'%}">Delete Project</option>

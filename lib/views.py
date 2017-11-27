@@ -171,6 +171,36 @@ def project_member_management(request, project_id=None, user_id=None, add=False)
         return core.views.hypervisor_management(request, error_message=e.message)
 
 
+def manage_quota(request, project_id=None):
+    hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+    try:
+        if project_id:
+            request.session[constants.SELECTED_PROJECT] = project_id
+
+        hypervisor[constants.PROJECT_ID] = project_id if project_id else request.session[constants.SELECTED_PROJECT]
+        adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+        if request.method == constants.GET:
+            return render(request, constants.MANAGE_QUOTA_TEMPLATE,
+                          {'quotas': adapter.get_quota_details(project_id, True)})
+
+        quotas = {
+            constants.TOTAL_CPU: request.POST[constants.TOTAL_CPU],
+            constants.TOTAL_MEMORY: request.POST[constants.TOTAL_MEMORY],
+            constants.INSTANCES: request.POST[constants.INSTANCES],
+            constants.FIXED_IPS: request.POST[constants.FIXED_IPS],
+            constants.FLOATING_IPS: request.POST[constants.FLOATING_IPS],
+            constants.SECURITY_GROUPS: request.POST[constants.SECURITY_GROUPS],
+            constants.SECURITY_GROUP_RULES: request.POST[constants.SECURITY_GROUP_RULES],
+            constants.SERVER_GROUPS: request.POST[constants.SERVER_GROUPS],
+            constants.SERVER_GROUP_MEMBERS: request.POST[constants.SERVER_GROUP_MEMBERS]
+        }
+        adapter.set_quota_details(request.session[constants.SELECTED_PROJECT], quotas)
+        return core.views.hypervisor_management(request, message="Quotas updated successfully.")
+    except Exception as e:
+        return core.views.hypervisor_management(request, error_message=e.message)
+
+
+
 def manage_instances(request, message=None, error_message=None):
     try:
         hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
@@ -373,6 +403,7 @@ def instance_action(request, instance_id, action):
             return manage_instances(request, message="Delete instance request submitted successfully.")
     except Exception as e:
         return manage_instances(request, error_message=e.message)
+
 
 def clear_session_variables(request, variables):
     for variable in variables:
