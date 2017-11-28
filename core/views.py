@@ -47,6 +47,7 @@ def login(request):
             django_login(request, auth_resp[constants.DJANGO_USER])
             # set session variables.
             request.session[constants.IS_DJANGO_ADMIN] = True
+            request.session[constants.USER] = {constants.USERNAME: username}
         else:
             # for SOL user, we should put first name in session, to show welcome message.
             user = auth_resp[constants.SOL_USER]
@@ -129,9 +130,10 @@ def create_user(request):
 
     user_detail[constants.USER_PASSWORD] = request.POST["new_password"]
     # pass the user's details taken from auth AD to create user in local AD
-    result = ad.create_user(db_service.get_local_ad(), user_detail)
-    if result and constants.ERROR_MESSAGE in result:
-        return list_sol_users(request, error_message=result[constants.ERROR_MESSAGE])
+    try:
+        ad.create_user(db_service.get_local_ad(), user_detail)
+    except Exception as e:
+            return list_sol_users(request, error_message=e.message)
     # add that created user in SOL database
     db_service.create_user(user_detail)
 
@@ -147,12 +149,13 @@ def change_user_status(request, username=None):
         :return render to list_users page with message or error_message
     """
     # pass username and local ad details to change the AD user's status
-    result = ad.change_status(db_service.get_local_ad(), username)
-    if constants.ERROR_MESSAGE in result:
-        list_sol_users(request, error_message=result[constants.ERROR_MESSAGE])
+    try:
+        ad.change_status(db_service.get_local_ad(), username)
+    except Exception as e:
+        list_sol_users(request, error_message="Unable to (de)active user due to : " + e.message)
     # change that user status from SOL database
     db_service.change_user_status(username)
-    return list_sol_users(request, message=result[constants.MESSAGE])
+    return list_sol_users(request, message="User (de)activated successfully.")
 
 
 def delete_user(request, username=None):
@@ -163,9 +166,10 @@ def delete_user(request, username=None):
     :return render to list_users page with message or error_message
     """
     # pass username with local ad details to delete user from AD
-    result = ad.delete_user(db_service.get_local_ad(), username)
-    if result and constants.ERROR_MESSAGE in result:
-        list_sol_users(request, error_message=result[constants.ERROR_MESSAGE])
+    try:
+        ad.delete_user(db_service.get_local_ad(), username)
+    except Exception as e:
+        list_sol_users(request, error_message=e.message)
     #delete the user from SOL database
     db_service.delete_user(username)
     return list_sol_users(request, message="User deleted successfully.")
@@ -227,15 +231,17 @@ def list_active_directory_group(request, username=None, message=None, error_mess
     #get AD details
     active_directory = db_service.get_local_ad()
     # pass AD details to load all groups from AD
-    all_groups = ad.load_all_groups(active_directory)
-    if isinstance(all_groups, dict):
-        return render(request, constants.ACTIVE_DIRECTORY_GROUP_TEMPLATE,
-                      {constants.ERROR_MESSAGE: all_groups[constants.ERROR_MESSAGE], 'user_detail': user_detail})
+    try:
+        all_groups = ad.load_all_groups(active_directory)
+    except Exception as e:
+        return render(request, constants.ACTIVE_DIRECTORY_GROUP_TEMPLATE, {constants.ERROR_MESSAGE: e.message,
+                                                                           'user_detail': user_detail})
     # pass user details and AD details to load groups from AD which user is added
-    user_groups = ad.load_all_groups(active_directory, username)
-    if isinstance(user_groups, dict):
-        return render(request, constants.ACTIVE_DIRECTORY_GROUP_TEMPLATE,
-                      {constants.ERROR_MESSAGE: user_groups[constants.ERROR_MESSAGE], 'user_detail': user_detail})
+    try:
+        user_groups = ad.load_all_groups(active_directory, username)
+    except Exception as e:
+        return render(request, constants.ACTIVE_DIRECTORY_GROUP_TEMPLATE, {constants.ERROR_MESSAGE: e.message,
+                                                                           'user_detail': user_detail})
 
     return render(request, constants.ACTIVE_DIRECTORY_GROUP_TEMPLATE,
                   {'user_detail': user_detail, 'all_groups': all_groups, 'user_groups': user_groups,
@@ -252,9 +258,10 @@ def add_remove_ad_group(request, username=None, add_group=True):
     """
     #get the list of group from html
     groups = request.POST.getlist('groups')
-    response = ad.add_remove_ad_groups(db_service.get_local_ad(), username, groups, add_group)
-    if response and constants.ERROR_MESSAGE in response:
-        return list_active_directory_group(request, username, error_message=response[constants.ERROR_MESSAGE])
+    try:
+        ad.add_remove_ad_groups(db_service.get_local_ad(), username, groups, add_group)
+    except Exception as e:
+        return list_active_directory_group(request, username, error_message=e.message)
 
     return list_active_directory_group(request, username, message="Groups processed successfully.")
 
@@ -376,3 +383,26 @@ def smtp_configuration(request):
     else:
         smtp_config = db_service.get_smtp_configuration()
     return render(request, constants.SMTP_CONFIGURATION_TEMPLATE, smtp_config)
+
+
+def change_password(request):
+    if request.method == constants.GET:
+        return render(request, constants.CHANGE_PASSWORD_TEMPLATE)
+
+    username = request.session[constants.USER][constants.USERNAME]
+    old_password = request.POST['old_password']
+    new_password = request.POST['new_password']
+
+    if constants.IS_DJANGO_ADMIN in request.session:
+        auth = ad.sol_authentication(username, old_password)
+        if not auth[constants.AUTH]:
+            return render(request, constants.CHANGE_PASSWORD_TEMPLATE,
+                          {constants.ERROR_MESSAGE: 'Invalid old password, please try again.'})
+        db_service.change_password(username, new_password)
+    else:
+        try:
+            ad.change_password(db_service.get_local_ad(), username, old_password, new_password)
+        except Exception as e:
+            return render(request, constants.CHANGE_PASSWORD_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
+    return render(request, constants.CHANGE_PASSWORD_TEMPLATE, {constants.MESSAGE: "Password changed successfully."})
+

@@ -31,6 +31,6 @@ urlpatterns = [
         url(r'^(?P<host>[\w\d.]+)/$', views.load_projects, name='hypervisor_login')
     ])),
     url(r'^smtp_configuration/$', views.smtp_configuration, name='smtp_configuration'),
-
+    url(r'^change_password/$', views.change_password, name="change_password"),
 
 ]

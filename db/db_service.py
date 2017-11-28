@@ -2,6 +2,7 @@ from . import models as sol_db
 from core import constants
 from core import services
 from time import gmtime, strftime
+from django.contrib.auth.models import User
 
 
 def get_auth_ad():
@@ -391,3 +392,9 @@ def get_sol_user_id(hypervisor=None, hypervisor_id=None):
     hypervisor_user = sol_db.HypervisorUser.objects.filter(hypervisor=hypervisor_id,
                                                            user=constants.HYPERVISOR_SOLUSER_NAME).first()
     return hypervisor_user.hypervisor_user_id
+
+
+def change_password(username, new_password):
+    usr = User.objects.get(username=username)
+    usr.set_password(new_password)
+    usr.save()

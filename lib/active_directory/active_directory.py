@@ -6,6 +6,7 @@ import ldap
 import winrm
 import re as regex
 from core import services
+from exception.active_directory_exception import ActiveDirectoryException
 
 
 def sol_authentication(username, password, domain=None):
@@ -128,12 +129,6 @@ def retrieve_user_details(active_directory, username):
 
 
 def create_user(active_directory, user_detail):
-    """
-        create user method is used to create a user in AD .
-        :param object of local AD details
-        :param object of users details contais username, users_full_name, email
-        :return error_message if any else it will return none
-    """
     name = user_detail[constants.USER_FULL_NAME].split()
     fname = name[0]
     lname = name[len(name) - 1]
@@ -141,53 +136,30 @@ def create_user(active_directory, user_detail):
     user_name = user_detail[constants.USERNAME]
     email = user_detail[constants.USER_EMAIL]
     password = user_detail[constants.USER_PASSWORD]
+    try:
+        script = 'New-ADUser "' + name + '" -GivenName "' + fname + '" -SurName "' + lname + '" -DisplayName "' + name \
+                 + '" -EmailAddress "' + email + '" -SamAccountName "' + user_name + \
+                 '" -AccountPassword (ConvertTo-SecureString  -Force -AsPlainText -String "' + password + \
+                 '") | Set-ADuser -ChangePasswordAtLogon $False '
 
-    script = 'New-ADUser "' + name + '" -GivenName "' + fname + '" -SurName "' + lname + '" -DisplayName "' + name \
-             + '" -EmailAddress "' + email + '" -SamAccountName "' + user_name + \
-             '" -AccountPassword (ConvertTo-SecureString  -Force -AsPlainText -String "' + password + \
-             '") | Set-ADuser -ChangePasswordAtLogon $False '
+        execute_script_winrm(active_directory, script)
 
-    output = execute_script_winrm(active_directory, script)
+        execute_script_winrm(active_directory, 'Enable-ADAccount -Identity "' + user_name + '"')
 
-    if constants.ERROR_MESSAGE in output or output['status_code'] != 0:
-        error = output[constants.ERROR_MESSAGE] if constants.ERROR_MESSAGE in output else output['error']
-        if 'The specified account already exists' not in error:
-            script = 'Remove-ADUser -Identity "' + user_name + '" -Confirm:$false'
-            execute_script_winrm(active_directory, script)
-        return {constants.ERROR_MESSAGE: error}
-
-    user_enable = execute_script_winrm(active_directory, 'Enable-ADAccount -Identity "' + user_name + '"')
-    if constants.ERROR_MESSAGE in user_enable or user_enable['status_code'] != 0:
-        error = user_enable[constants.ERROR_MESSAGE] if constants.ERROR_MESSAGE in user_enable else user_enable[
-            'error']
-        return {constants.ERROR_MESSAGE: error}
-
-    return None
+    except Exception as e:
+        if 'The specified account already exists' not in e.message:
+            execute_script_winrm(active_directory, 'Remove-ADUser -Identity "' + user_name + '" -Confirm:$false')
+        raise e
 
 
 def change_status(active_directory, username):
-    """
-        Change AD user's status i.e Active/Deactive
-        :param object of local AD details
-        :param username
-        :return error_message if any else it will return none
-    """
     user = sol_db.User.objects.get(username=username)
     script = 'Enable-ADAccount -Identity "' + username + '"'
-    message = "Successfully Activated "
-    error_message = "Unable to Activate user due to : "
 
     if bool(user.active):
         script = 'Disable-ADAccount -Identity "' + username + '"'
-        message = "Successfully Deactivated "
-        error_message = "Unable to Deactivate user due to : "
 
-    output = execute_script_winrm(active_directory, script)
-    if constants.ERROR_MESSAGE in output or output['status_code'] != 0:
-        error = output[constants.ERROR_MESSAGE] if constants.ERROR_MESSAGE in output else output['error']
-        return {constants.ERROR_MESSAGE: error_message + error}
-
-    return {constants.MESSAGE: message + user.full_name}
+    execute_script_winrm(active_directory, script)
 
 
 def delete_user(active_directory, username):
@@ -198,13 +170,7 @@ def delete_user(active_directory, username):
       :return: error message or either none
     """
     script = 'Remove-ADUser -Identity "' + username + '" -Confirm:$false'
-    output = execute_script_winrm(active_directory, script)
-
-    if constants.ERROR_MESSAGE in output or output['status_code'] != 0:
-        error = output[constants.ERROR_MESSAGE] if constants.ERROR_MESSAGE in output else output['error']
-        return {constants.ERROR_MESSAGE: error}
-
-    return None
+    execute_script_winrm(active_directory, script)
 
 
 def load_all_groups(active_directory, username=None):
@@ -216,14 +182,11 @@ def load_all_groups(active_directory, username=None):
     """
     script = 'Get-ADGroup -Filter *' if not username else 'Get-ADPrincipalGroupMembership -Identity "' + username + '"'
     script = script + ' | Select Name'
-    output = execute_script_winrm(active_directory, script)
-    if constants.ERROR_MESSAGE in output:
-        return {constants.ERROR_MESSAGE: output[constants.ERROR_MESSAGE]}
 
-    groups = filter(None, output['output'].split('\r\n'))
+    groups = filter(None, execute_script_winrm(active_directory, script).split('\r\n'))
     group_list = []
-    for i in range(2, len(groups), 1):
-        group_list.append(groups[i].strip())
+    for group in range(2, len(groups), 1):
+        group_list.append(groups[group].strip())
     return group_list
 
 
@@ -238,11 +201,12 @@ def add_remove_ad_groups(active_directory, username, groups, add_group):
     """
     script = 'Remove-ADGroupMember "' if not add_group else 'Add-ADGroupMember "'
     for group in groups:
-        output = execute_script_winrm(active_directory, script + group + '" "' + username + '"')
-        if constants.ERROR_MESSAGE in output or output['status_code'] != 0:
-            error = output[constants.ERROR_MESSAGE] if constants.ERROR_MESSAGE in output else output['error']
-            return {constants.ERROR_MESSAGE: 'Unable to process "' + group + '" due to : ' + error}
-    return None
+        try:
+            execute_script_winrm(active_directory, script + group + '" "' + username + '"')
+        except Exception as e:
+            e.message = 'Unable to process "' + group + '" due to : ' + e.message
+            raise e
+
 
 def ldap_connection(host, port, domain, username, password):
     """
@@ -267,6 +231,22 @@ def ldap_connection(host, port, domain, username, password):
         raise e
 
 
+def change_password(active_directory, username, old_password, new_password):
+    try:
+        connection = ldap_connection(active_directory[constants.LOCAL_AD_HOST],
+                                     active_directory[constants.LOCAL_AD_PORT],
+                                     active_directory[constants.LOCAL_AD_DOMAIN], username, old_password)
+        connection.unbind_s()
+
+        script = 'Set-ADAccountPassword -Reset -PassThru -Identity ' + username + \
+                 ' -NewPassword (ConvertTo-SecureString  -Force -AsPlainText -String ' + new_password + \
+                 ')| Set-ADuser -ChangePasswordAtLogon $False'
+        execute_script_winrm(active_directory, script)
+
+    except ldap.INVALID_CREDENTIALS:
+        raise ActiveDirectoryException(message="Invalid old password, please try again.")
+
+
 def execute_script_winrm(active_directory, script):
     """
     To execute AD powershell commands in windows machine (to perform AD operations)
@@ -280,6 +260,9 @@ def execute_script_winrm(active_directory, script):
                           auth=(active_directory[constants.LOCAL_AD_USERNAME],
                                 services.decode(active_directory[constants.LOCAL_AD_PASSWORD])))
         output = s.run_ps(script)
-        return {'status_code': output.status_code, 'output': output.std_out, 'error': output.std_err}
+
+        if output.status_code != 0:
+            raise ActiveDirectoryException(message=output.std_err)
+        return output.std_out
     except Exception as e:
-        return {constants.ERROR_MESSAGE: e.message}
+        raise e
