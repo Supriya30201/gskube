@@ -49,59 +49,60 @@ def get_local_ad():
         }
 
 
-def store_auth_ad(host, port, dn, domain, username, password):
+def store_auth_ad(auth_active_directory):
     """
     Store auth ad method stores details of auth ad to database.
     :return:
     """
-    update_configuration(constants.AUTH_AD_HOST, host)
-    update_configuration(constants.AUTH_AD_PORT, port)
-    update_configuration(constants.AUTH_AD_DN, dn)
-    update_configuration(constants.AUTH_AD_DOMAIN, domain)
-    update_configuration(constants.AUTH_AD_USERNAME, username)
-    update_configuration(constants.AUTH_AD_PASSWORD, services.encode(password))
-
-    return {constants.AUTH_AD_HOST: host, constants.AUTH_AD_PORT: port, constants.AUTH_AD_DN: dn,
-            constants.AUTH_AD_DOMAIN: domain, constants.AUTH_AD_USERNAME: username,
-            constants.AUTH_AD_PASSWORD: services.encode(password)}
+    update_configuration(constants.AUTH_AD_HOST, auth_active_directory[constants.AUTH_AD_HOST])
+    update_configuration(constants.AUTH_AD_PORT, auth_active_directory[constants.AUTH_AD_PORT])
+    update_configuration(constants.AUTH_AD_DN, auth_active_directory[constants.AUTH_AD_DN])
+    update_configuration(constants.AUTH_AD_DOMAIN, auth_active_directory[constants.AUTH_AD_DOMAIN])
+    update_configuration(constants.AUTH_AD_USERNAME, auth_active_directory[constants.AUTH_AD_USERNAME])
+    update_configuration(constants.AUTH_AD_PASSWORD, auth_active_directory[constants.AUTH_AD_PASSWORD], True)
 
 
-def store_local_ad(host, port, dn, domain, username, password):
+def store_local_ad(local_active_directory):
     """
     Store auth ad method stores details of auth ad to database.
     :return:
     """
-    update_configuration(constants.LOCAL_AD_HOST, host)
-    update_configuration(constants.LOCAL_AD_PORT, port)
-    update_configuration(constants.LOCAL_AD_DN, dn)
-    update_configuration(constants.LOCAL_AD_DOMAIN, domain)
-    update_configuration(constants.LOCAL_AD_USERNAME, username)
-    update_configuration(constants.LOCAL_AD_PASSWORD, services.encode(password))
-
-    return {constants.LOCAL_AD_HOST: host, constants.LOCAL_AD_PORT: port, constants.LOCAL_AD_DN: dn,
-            constants.LOCAL_AD_DOMAIN: domain, constants.LOCAL_AD_USERNAME: username,
-            constants.LOCAL_AD_PASSWORD: services.encode(password)}
+    update_configuration(constants.LOCAL_AD_HOST, local_active_directory[constants.LOCAL_AD_HOST])
+    update_configuration(constants.LOCAL_AD_PORT, local_active_directory[constants.LOCAL_AD_PORT])
+    update_configuration(constants.LOCAL_AD_DN, local_active_directory[constants.LOCAL_AD_DN])
+    update_configuration(constants.LOCAL_AD_DOMAIN, local_active_directory[constants.LOCAL_AD_DOMAIN])
+    update_configuration(constants.LOCAL_AD_USERNAME, local_active_directory[constants.LOCAL_AD_USERNAME])
+    update_configuration(constants.LOCAL_AD_PASSWORD, local_active_directory[constants.LOCAL_AD_PASSWORD], True)
 
 
 def get_openvpn_configuration():
     # check if ad is configured.
-    host = sol_db.ConfigMaster.objects.filter(key=constants.AUTH_AD_HOST)
+    host = sol_db.ConfigMaster.objects.filter(key=constants.OPENVPN_HOST)
     if not host:
         return None
 
     host = host.first().value
 
     return {
-        constants.AUTH_AD_HOST: host,
-        constants.AUTH_AD_PORT: sol_db.ConfigMaster.objects.filter(key=constants.AUTH_AD_PORT).first().value,
-        constants.AUTH_AD_DN: sol_db.ConfigMaster.objects.filter(key=constants.AUTH_AD_DN).first().value,
-        constants.AUTH_AD_DOMAIN: sol_db.ConfigMaster.objects.filter(key=constants.AUTH_AD_DOMAIN).first().value,
-        constants.AUTH_AD_USERNAME: sol_db.ConfigMaster.objects.filter(key=constants.AUTH_AD_USERNAME).first().value,
-        constants.AUTH_AD_PASSWORD: sol_db.ConfigMaster.objects.filter(key=constants.AUTH_AD_PASSWORD).first().value,
+        constants.OPENVPN_HOST: host,
+        constants.OPENVPN_USERNAME: sol_db.ConfigMaster.objects.filter(key=constants.OPENVPN_USERNAME).first().value,
+        constants.OPENVPN_PASSWORD: sol_db.ConfigMaster.objects.filter(key=constants.OPENVPN_PASSWORD).first().value,
+        constants.OPENVPN_FOLDER_LOCATION: sol_db.ConfigMaster.objects.filter(
+            key=constants.OPENVPN_FOLDER_LOCATION).first().value,
+        constants.OPENVPN_TEMP_FOLDER_LOCATION: sol_db.ConfigMaster.objects.filter(
+            key=constants.OPENVPN_TEMP_FOLDER_LOCATION).first().value,
     }
 
 
-def update_configuration(key, value):
+def save_openvpn_configuration(openvpn_config):
+    update_configuration(constants.OPENVPN_HOST, openvpn_config[constants.OPENVPN_HOST])
+    update_configuration(constants.OPENVPN_USERNAME, openvpn_config[constants.OPENVPN_USERNAME])
+    update_configuration(constants.OPENVPN_PASSWORD, openvpn_config[constants.OPENVPN_PASSWORD], True)
+    update_configuration(constants.OPENVPN_FOLDER_LOCATION, openvpn_config[constants.OPENVPN_FOLDER_LOCATION])
+    update_configuration(constants.OPENVPN_TEMP_FOLDER_LOCATION, openvpn_config[constants.OPENVPN_TEMP_FOLDER_LOCATION])
+
+
+def update_configuration(key, value, encode=False):
     """
     update configuration method can be used to update any key from configuration table.
     :param key:
@@ -109,7 +110,10 @@ def update_configuration(key, value):
     :return:
     """
     obj, _ = sol_db.ConfigMaster.objects.get_or_create(key=key)
-    obj.value = value
+    if encode:
+        obj.value = services.encode(value)
+    else:
+        obj.value = value
     obj.save()
 
 
@@ -368,20 +372,15 @@ def get_smtp_configuration():
         constants.SMTP_SERVER: server,
         constants.SMTP_PORT: sol_db.ConfigMaster.objects.filter(key=constants.SMTP_PORT).first().value,
         constants.SMTP_USERNAME: sol_db.ConfigMaster.objects.filter(key=constants.SMTP_USERNAME).first().value,
-        constants.SMTP_PASSWORD: services.decode(
-            sol_db.ConfigMaster.objects.filter(key=constants.SMTP_PASSWORD).first().value)
+        constants.SMTP_PASSWORD: sol_db.ConfigMaster.objects.filter(key=constants.SMTP_PASSWORD).first().value
     }
 
 
-def set_smtp_configuration(server, port, username, password):
-    update_configuration(constants.SMTP_SERVER, server)
-    update_configuration(constants.SMTP_PORT, port)
-    update_configuration(constants.SMTP_USERNAME, username)
-    update_configuration(constants.SMTP_PASSWORD, services.encode(password))
-    return {
-        constants.SMTP_SERVER: server, constants.SMTP_PORT: port, constants.SMTP_USERNAME: username,
-        constants.SMTP_PASSWORD: password
-    }
+def set_smtp_configuration(smtp_config):
+    update_configuration(constants.SMTP_SERVER, smtp_config[constants.SMTP_SERVER])
+    update_configuration(constants.SMTP_PORT, smtp_config[constants.SMTP_PORT])
+    update_configuration(constants.SMTP_USERNAME, smtp_config[constants.SMTP_USERNAME])
+    update_configuration(constants.SMTP_PASSWORD, smtp_config[constants.SMTP_PASSWORD], True)
 
 
 def get_sol_user_id(hypervisor=None, hypervisor_id=None):

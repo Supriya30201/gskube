@@ -7,7 +7,7 @@ width: 60% !Important;
 </style>
 {% block body %}
 
-<div class="container col-md-12"><h3 align="center">OpenVpn Configuration Information</h3><br/>
+<div class="container col-md-12"><h3 align="center">OpenVpn Configuration</h3><br/>
     {% if message %}
 
     <div align="left">
@@ -20,39 +20,39 @@ width: 60% !Important;
     </div>
     {% endif %}
 
-    <form method="post" action="{% url 'create_openvpn_form' %}">
+    <form method="post" action="{% url 'openvpn_configuration' %}">
         {% csrf_token %}
 
         <table class="table table-hover" align="left">
             <tr>
-                <td><label> OpenVpn Server IP : </label></td>
-                <td><input class="form-control form-controlcss" type="text" name="ip"
-                           value="{{ openvpn_config.server_ip }}" required></td>
+                <td><label>Host : </label></td>
+                <td><input class="form-control form-controlcss" type="text" name="openvpn_host"
+                           value="{{ openvpn_conf.openvpn_host }}" required></td>
             </tr>
             <tr>
-                <td><label> OpenVpn Server Username : </label></td>
-                <td><input class="form-control form-controlcss" type="text" name="username"
-                           value="{{ openvpn_config.server_username }}" required></td>
+                <td><label>Username : </label></td>
+                <td><input class="form-control form-controlcss" type="text" name="openvpn_username"
+                           value="{{ openvpn_conf.openvpn_username }}" required></td>
 
             </tr>
             <tr>
-                <td><label> OpenVpn Server Password : </label></td>
-                <td><input class="form-control form-controlcss" type="password" name="password"
-                           value="{{ openvpn_config.server_password }}" required></td>
+                <td><label>Password : </label></td>
+                <td><input class="form-control form-controlcss" type="password" name="openvpn_password"
+                           value="{{ openvpn_conf.openvpn_password }}" required></td>
             </tr>
             <tr>
-                <td><label> OpenVpn Configuration Files Path : </label></td>
-                <td><input class="form-control form-controlcss" type="text" name="openvpn_path"
-                           value="{{ openvpn_config.openvpn_path }}" required></td>
+                <td><label>Configuration Files Path : </label></td>
+                <td><input class="form-control form-controlcss" type="text" name="openvpn_folder_location"
+                           value="{{ openvpn_conf.openvpn_folder_location }}" required></td>
             </tr>
             <tr>
-                <td><label> OpenVpn Configuration Files Temporary Path : </label></td>
-                <td><input class="form-control form-controlcss" type="text" name="openvpn_temporary_path"
-                           value="{{ openvpn_config.openvpn_temporary_path }}" required></td>
+                <td><label>Temporary Configuration Files Path : </label></td>
+                <td><input class="form-control form-controlcss" type="text" name="openvpn_temp_folder_location"
+                           value="{{ openvpn_conf.openvpn_temp_folder_location }}" required></td>
             </tr>
         </table>
         <div align="center" style="margin-bottom: 25px;">
-            <button class="btn btn-primary" type="submit">Save OpenVpn Details</button>
+            <button class="btn btn-primary" type="submit">Save</button>
         </div>
     </form>
 </div>

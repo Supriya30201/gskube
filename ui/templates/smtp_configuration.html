@@ -43,20 +43,20 @@ width: 60% !Important;
         <table width="300px" class="table table-hover" align="center">
             <tr>
                 <td><label>SMTP Server FQDN: </label></td>
-                <td><input class="form-control form-controlcss" type="text" name="smtp_server"  value="{{ smtp_server }}"
+                <td><input class="form-control form-controlcss" type="text" name="smtp_server"  value="{{ smtp_config.smtp_server }}"
                            required></td>
             </tr>
             <tr>
                 <td><label>SMTP Server Port: </label></td>
-                <td><input class="form-control form-controlcss" type="text" name="smtp_port" value="{{ smtp_port }}" required></td>
+                <td><input class="form-control form-controlcss" type="text" name="smtp_port" value="{{ smtp_config.smtp_port }}" required></td>
             </tr>
             <tr>
                 <td><label>Email: </label></td>
-                <td><input class="form-control form-controlcss" type="email" name="smtp_username" value="{{ smtp_username }}"required></td>
+                <td><input class="form-control form-controlcss" type="email" name="smtp_username" value="{{ smtp_config.smtp_username }}"required></td>
             </tr>
             <tr>
                 <td><label>password : </label></td>
-                <td><input class="form-control form-controlcss" type="password" name="smtp_password" value="{{ smtp_password }}" required></td>
+                <td><input class="form-control form-controlcss" type="password" name="smtp_password" value="{{ smtp_config.smtp_password }}" required></td>
             </tr>
         </table>
         <div align="center">

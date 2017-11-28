@@ -4,6 +4,7 @@ from email.mime.multipart import MIMEMultipart
 from email.mime.text import MIMEText
 import logging
 from core import constants
+from core import services
 
 logging.basicConfig()
 logger = logging.getLogger(__name__)
@@ -46,7 +47,7 @@ def send_mail(receiver, subject, message):
 
         mail.ehlo()
         mail.starttls()
-        mail.login(email_config[constants.SMTP_USERNAME], email_config[constants.SMTP_PASSWORD])
+        mail.login(email_config[constants.SMTP_USERNAME], services.decode(email_config[constants.SMTP_PASSWORD]))
         logger.info("Email auth successful, sending mail receiver " + receiver)
 
         mail.sendmail(email_config[constants.SMTP_USERNAME], receiver.split(","), msg.as_string())

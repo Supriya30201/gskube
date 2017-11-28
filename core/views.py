@@ -176,45 +176,35 @@ def delete_user(request, username=None):
 
 
 def active_directory_configuration(request):
-    """
-    Store the AD details in SOL database
-    :param request:
-    :return:
-    """
     # in case if it's GET request redirect to active directory template with AD details if any.
+    message = None
     if request.method == constants.GET:
         # if ad details are already stored in db then it should able to see, so we render this details to AD_template
         local_active_directory = db_service.get_local_ad()
         auth_active_directory = db_service.get_auth_ad()
-        return render(request, constants.ACTIVE_DIRECTORY_TEMPLATE, {'auth_ad': auth_active_directory,
-                                                                     'local_ad': local_active_directory})
-
-    message = None
-    error_message = None
-    auth_active_directory = None
-    local_active_directory = None
-    try:
+    else:
         #store local AD details in SOL DB
-        local_active_directory = db_service.store_local_ad(request.POST['local_ad_ip'], request.POST['local_ad_port'],
-                                                           request.POST['local_ad_dn'], request.POST['local_ad_domain'],
-                                                           request.POST['local_ad_username'],
-                                                           request.POST['local_ad_password'])
+        local_active_directory = {constants.LOCAL_AD_HOST: request.POST[constants.LOCAL_AD_HOST],
+                                  constants.LOCAL_AD_PORT: request.POST[constants.LOCAL_AD_PORT],
+                                  constants.LOCAL_AD_DN: request.POST[constants.LOCAL_AD_DN],
+                                  constants.LOCAL_AD_DOMAIN: request.POST[constants.LOCAL_AD_DOMAIN],
+                                  constants.LOCAL_AD_USERNAME: request.POST[constants.LOCAL_AD_USERNAME],
+                                  constants.LOCAL_AD_PASSWORD: request.POST[constants.LOCAL_AD_PASSWORD]}
+        db_service.store_local_ad(local_active_directory)
         # store auth AD details in SOL DB
-        auth_active_directory = db_service.store_auth_ad(request.POST['auth_ad_ip'], request.POST['auth_ad_port'],
-                                                         request.POST['auth_ad_dn'], request.POST['auth_ad_domain'],
-                                                         request.POST['auth_ad_username'],
-                                                         request.POST['auth_ad_password'])
+        auth_active_directory = {constants.AUTH_AD_HOST: request.POST[constants.AUTH_AD_HOST],
+                                 constants.AUTH_AD_PORT: request.POST[constants.AUTH_AD_PORT],
+                                 constants.AUTH_AD_DN: request.POST[constants.AUTH_AD_DN],
+                                 constants.AUTH_AD_DOMAIN: request.POST[constants.AUTH_AD_DOMAIN],
+                                 constants.AUTH_AD_USERNAME: request.POST[constants.AUTH_AD_USERNAME],
+                                 constants.AUTH_AD_PASSWORD: request.POST[constants.AUTH_AD_PASSWORD],}
+        db_service.store_auth_ad(auth_active_directory)
         # store_ad_in_session(request, local_active_directory)
         message = "AD Details Saved Successfully"
-    except Exception as e:
-        if isinstance(e.message, dict):
-            error_message = 'Unable to connect AD : ' + e.message['desc']
-        else:
-            error_message = "Unable to connect AD : " + e.message
 
     return render(request, constants.ACTIVE_DIRECTORY_TEMPLATE, {'auth_ad': auth_active_directory,
                                                                  'local_ad': local_active_directory,
-                                                                 'message': message, 'error_message': error_message})
+                                                                 constants.MESSAGE: message})
 
 
 def list_active_directory_group(request, username=None, message=None, error_message=None):
@@ -267,10 +257,19 @@ def add_remove_ad_group(request, username=None, add_group=True):
 
 
 def openvpn_configuration(request):
-
+    message = None
     if request.method == constants.GET:
         openvpn_conf = db_service.get_openvpn_configuration()
-        return render(request, constants.OPENVPN_TEMPLATE, {'openvpn_conf': openvpn_conf})
+    else:
+        openvpn_conf = {constants.OPENVPN_HOST: request.POST[constants.OPENVPN_HOST],
+                        constants.OPENVPN_USERNAME: request.POST[constants.OPENVPN_USERNAME],
+                        constants.OPENVPN_PASSWORD: request.POST[constants.OPENVPN_PASSWORD],
+                        constants.OPENVPN_FOLDER_LOCATION: request.POST[constants.OPENVPN_FOLDER_LOCATION],
+                        constants.OPENVPN_TEMP_FOLDER_LOCATION: request.POST[constants.OPENVPN_TEMP_FOLDER_LOCATION]}
+        db_service.save_openvpn_configuration(openvpn_conf)
+        message = "OpenVPN configuration updated successfully."
+
+    return render(request, constants.OPENVPN_TEMPLATE, {'openvpn_conf': openvpn_conf, constants.MESSAGE: message})
 
 
 def hypervisor_management(request, hypervisor_id=None, message=None, error_message=None):
@@ -375,14 +374,18 @@ def load_projects(request, host=None):
 
 
 def smtp_configuration(request):
+    message = None
     if request.method == constants.POST:
-        smtp_config = db_service.set_smtp_configuration(request.POST[constants.SMTP_SERVER],
-                                                        request.POST[constants.SMTP_PORT],
-                                                        request.POST[constants.SMTP_USERNAME],
-                                                        request.POST[constants.SMTP_PASSWORD])
+        smtp_config = {constants.SMTP_SERVER: request.POST[constants.SMTP_SERVER],
+                       constants.SMTP_PORT: request.POST[constants.SMTP_PORT],
+                       constants.SMTP_USERNAME: request.POST[constants.SMTP_USERNAME],
+                       constants.SMTP_PASSWORD: request.POST[constants.SMTP_PASSWORD]}
+        db_service.set_smtp_configuration(smtp_config)
+        message = "SMTP configuration updated successfully."
     else:
         smtp_config = db_service.get_smtp_configuration()
-    return render(request, constants.SMTP_CONFIGURATION_TEMPLATE, smtp_config)
+    return render(request, constants.SMTP_CONFIGURATION_TEMPLATE, {'smtp_config':smtp_config,
+                                                                   constants.MESSAGE: message})
 
 
 def change_password(request):
