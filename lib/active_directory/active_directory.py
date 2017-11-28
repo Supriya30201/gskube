@@ -199,7 +199,7 @@ def add_remove_ad_groups(active_directory, username, groups, add_group):
     :param add_group: its flag, its value decide to get added or removed
     :return: error_message or either  none
     """
-    script = 'Remove-ADGroupMember "' if not add_group else 'Add-ADGroupMember "'
+    script = 'Add-ADGroupMember "' if add_group is True else 'Remove-ADGroupMember "'
     for group in groups:
         try:
             execute_script_winrm(active_directory, script + group + '" "' + username + '"')
