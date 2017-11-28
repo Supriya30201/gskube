@@ -5,51 +5,67 @@
 
 <div class="container col-md-12" align="center">
 
-    {% if not request.session.selected_openstack and not request.session.is_django_admin %}
-    Hi {{ request.session.user.user_first_name }}, Please connect to openstack.
+    {% if not request.session.selected_hypervisor and not request.session.is_django_admin %}
+    Hi {{ request.session.user.user_first_name }}, Please connect to hypervisor.
     {% endif %}
-    {% if request.session.selected_openstack and not request.session.selected_project %}
+    {% if request.session.selected_hypervisor and not request.session.selected_project %}
     Hi {{ request.session.user.user_first_name }}, Please connect project.
     {% endif %}
     <div class="starter-template">
-        <h3>Welcome to Service Online Dashboard</h3>
+        <h3>Welcome to Service Online</h3>
     </div>
     <br>
-
     <div class="panel panel-primary" align="left" style="width:50%">
         <div class="panel-heading">Quick Links</div>
         {% if request.session.is_django_admin %}
-        <div class="panel-body"><a href="{% url 'sol_users'%}"> <span class="glyphicon glyphicon-user"> </span> Manage
-            Users</a></div>
-        <div class="panel-body"><a href="{% url 'hypervisor_management'%}"><span class="glyphicon glyphicon-th-large"> </span> Hypervisor
-            Management </a></div>
-        <div class="panel-body"><a href="{% url 'active_directory'%}"><span class="glyphicon glyphicon-book"> </span>
-            Active Directory </a></div>
-        <div class="panel-body"><a href=""><span class="glyphicon glyphicon-book"> </span>
-            OpenVpn Configuration </a></div>
-        <div class="panel-body"><a href="/django_admin/admin" target="_blank"><span class="glyphicon glyphicon-tower"> </span> Admin
-            Panel </a></div>
-        <div class="panel-body"><a href="{% url 'smtp_configuration'%}"><span class="glyphicon glyphicon-envelope"> </span>
-            SMTP Configuration </a></div>
+        <div class="panel-body">
+            <a href="{% url 'sol_users'%}">
+                <span class="glyphicon glyphicon-user"> </span> Manage Users
+            </a>
+        </div>
+        <div class="panel-body">
+            <a href="{% url 'hypervisor_management'%}">
+                <span class="glyphicon glyphicon-th-large"> </span> Hypervisor Management
+            </a>
+        </div>
+        <div class="panel-body">
+            <a href="{% url 'active_directory'%}">
+                <span class="glyphicon glyphicon-book"> </span> Active Directory
+            </a>
+        </div>
+        <div class="panel-body">
+            <a href="{% url 'openvpn_configuration'%}">
+                <span class="glyphicon glyphicon-book"> </span> OpenVpn Configuration
+            </a>
+        </div>
+        <div class="panel-body">
+            <a href="{% url 'smtp_configuration'%}">
+                <span class="glyphicon glyphicon-envelope"> </span> SMTP Configuration
+            </a>
+        </div>
+        <div class="panel-body">
+            <a href="{% url 'hypervisor_preference'%}">
+                <span class="glyphicon glyphicon-list-alt"> </span> Hypervisor Preferences
+            </a>
+        </div>
+        {% endif %}
 
-        {% endif %}
         {% if request.session.is_admin %}
-        <div class="panel-body"><a href="{% url 'instance_request'%}"><span class="glyphicon glyphicon-cog"> </span>
-            Server Requests</a></div>
+        <div class="panel-body">
+            <a href="{% url 'instance_request'%}">
+                <span class="glyphicon glyphicon-cog"> </span> Server Requests
+            </a>
+        </div>
         {% endif %}
+
         {% if request.session.selected_project %}
-        <div class="panel-body"><a href="{% url 'manage_instances'%}"><span class="glyphicon glyphicon-cloud-upload"> </span>
-            Instances</a></div>
-        <div class="panel-body"><a href=""><span class="glyphicon glyphicon-list-alt"> </span>
-            Manage Certificates </a></div>
-        {% endif %}
-        {% if not request.session.is_django_admin %}
-        <div class="panel-body"><a href="{% url 'hypervisor_preference'%}"><span
-                class="glyphicon glyphicon-list-alt"> </span> Hypervisor Preferences </a></div>
+        <div class="panel-body">
+            <a href="{% url 'manage_instances'%}">
+                <span class="glyphicon glyphicon-cloud-upload"> </span> Instances
+            </a>
+        </div>
         {% endif %}
     </div>
-
-
 </div>
 
 {% endblock %}

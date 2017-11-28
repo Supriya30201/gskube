@@ -8,17 +8,18 @@ import logging
 from lib import factory
 import lib
 from exception.sol_exception import SOLException
+from core import services
 
 logger = logging.getLogger(__name__)
 
 
-def load_dashboard(request):
+def load_dashboard(request, error_message=None):
     """
     This method just loads dashboard page.
     :param request:
     :return:
     """
-    return render(request, constants.DASHBOARD_TEMPLATE)
+    return render(request, constants.DASHBOARD_TEMPLATE, {})
 
 
 def login(request):
@@ -270,6 +271,18 @@ def openvpn_configuration(request):
         message = "OpenVPN configuration updated successfully."
 
     return render(request, constants.OPENVPN_TEMPLATE, {'openvpn_conf': openvpn_conf, constants.MESSAGE: message})
+
+
+def generate_openvpn_certificate(request, username=None):
+    if not username:
+        username = request.session[constants.USER][constants.USERNAME]
+
+    try:
+        return services.generate_openvpn_certificate(db_service.get_openvpn_configuration(), username)
+    except Exception as e:
+        if constants.IS_DJANGO_ADMIN in request.session:
+            return list_sol_users(request, error_message=e.message)
+        return load_dashboard(request)
 
 
 def hypervisor_management(request, hypervisor_id=None, message=None, error_message=None):
