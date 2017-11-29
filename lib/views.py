@@ -32,7 +32,8 @@ def load_hypervisor_projects(request, hypervisor=None, domain=None, username=Non
 def mark_project_selection(request, project_id=None):
     selected_project = project_id if project_id else request.POST['hypervisor_project']
     if selected_project == '--select--':
-        clear_session_variables(request, [constants.SELECTED_PROJECT])
+        clear_session_variables(request, [constants.SELECTED_PROJECT, constants.IS_ADMIN, constants.ENDPOINT_URLS,
+                                          constants.TOKEN])
         return render(request, constants.DASHBOARD_TEMPLATE)
     for project in request.session[constants.PROJECTS]:
         if project['id'] == selected_project:
@@ -40,6 +41,7 @@ def mark_project_selection(request, project_id=None):
             hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
             hypervisor[constants.PROJECT_ID] = project['id']
             adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+            adapter.keystone_client = None
             token, endpoint_urls, is_admin = adapter.is_admin_for_project()
             request.session[constants.TOKEN] = token
             hypervisor[constants.TOKEN] = token

@@ -6,6 +6,7 @@ from exception.openstack_session_exception import OpenstackSessionException
 from keystoneclient.v3 import client as v3_client
 from keystoneclient.auth.identity import v3
 from core import constants
+import urllib2
 
 
 # Unscoped Token using v2
@@ -29,7 +30,13 @@ def scoped_login_v3(protocol, host, port, token, project_id):
         auth = v3.Token(auth_url=url, token=token, project_id=project_id)
         session = keystone_session.Session(auth=auth)
         connection = v3_client.Client(session=session)
-        services = connection.services.list()
+        token = connection.session.get_token(auth)
+        try:
+            services = connection.services.list()
+        except Exception as e:
+            if 'You are not authorized to perform' in e.message:
+                return {'client': connection, 'token': token}
+            raise e
         endpoints = connection.endpoints.list(interface="public")
         endpoint_urls = []
         for service in services:
@@ -40,7 +47,7 @@ def scoped_login_v3(protocol, host, port, token, project_id):
                         "endpoint_url": str(endpoint.url)
                     })
                     break;
-        token = connection.session.get_token(auth)
+
         return {'client': connection, 'token': token, 'endpoint_urls': endpoint_urls}
     except Exception as e:
         raise OpenstackException("Exception while performing scoped login : " + e.message, exception=e)

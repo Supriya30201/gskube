@@ -89,7 +89,9 @@ class Openstack(sol_adapter.SolAadapter):
     def is_admin_for_project(self):
         try:
             user_id, token, endpoint_urls = self.load_keystone_client(self.project_id)
-            is_admin = keystone.is_admin(self.keystone_client, user_id, self.project_id)
+            is_admin = False
+            if endpoint_urls:
+                is_admin = keystone.is_admin(self.keystone_client, user_id, self.project_id)
             return token, endpoint_urls, is_admin
         except Exception as e:
             raise OpenstackException(message=e.message, exception=e)
@@ -230,7 +232,9 @@ class Openstack(sol_adapter.SolAadapter):
 
         self.keystone_client = scoped_auth['client']
 
-        return unscoped_auth['user_id'], scoped_auth['token'], scoped_auth['endpoint_urls']
+        if 'endpoint_urls' in scoped_auth:
+            return unscoped_auth['user_id'], scoped_auth['token'], scoped_auth['endpoint_urls']
+        return unscoped_auth['user_id'], scoped_auth['token'], []
 
     def load_glance_client(self, endpoint_list, token):
         endpoint_url = None
