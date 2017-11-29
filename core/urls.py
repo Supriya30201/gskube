@@ -36,5 +36,8 @@ urlpatterns = [
     ])),
     url(r'^smtp_configuration/$', views.smtp_configuration, name='smtp_configuration'),
     url(r'^change_password/$', views.change_password, name="change_password"),
+    url(r'^hypervisor_user_management/', include([
+        url(r'^(?P<username>[\w\d-]+)/$', views.hypervisor_user_management, name="hypervisor_user_management")
+    ])),
 
 ]

@@ -38,37 +38,35 @@ def login(request):
     password = request.POST['password']
 
     # pass credentials with domain to authenticate method
-    auth_resp = ad.sol_authentication(username, password, domain)
+    try:
+        sol_user = ad.sol_authentication(username, password, domain)
+    except Exception as e:
+        return render(request, constants.LOGIN_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
 
     # authenticate method return dict object, which contains "auth" flag to indicate successful authentication.
-    if auth_resp[constants.AUTH]:
-        # if domain is not specified, it should be a django_admin
-        if not domain:
-            # login django_admin to session so that user can also visit admin site.
-            django_login(request, auth_resp[constants.DJANGO_USER])
-            # set session variables.
-            request.session[constants.IS_DJANGO_ADMIN] = True
-            request.session[constants.USER] = {constants.USERNAME: username}
-        else:
-            # for SOL user, we should put first name in session, to show welcome message.
-            user = auth_resp[constants.SOL_USER]
-            name = user.full_name.split()
-            session_user = {constants.USERNAME: username, constants.USER_FIRST_NAME: name[0]}
-            request.session[constants.USER_HYPERVISORS] = db_service.get_hypervisor_of_user(username)
-            if user.default_project:
-                hypervisor = user.default_project.hypervisor.host
-                project_id = user.default_project.project_id
-                project_name = user.default_project.name
-                domain, username, password = db_service.get_user_creds(hypervisor, username)
-                session_user[constants.DEFAULT_HYPERVISOR] = hypervisor
-                session_user[constants.DEFAULT_PROJECT] = project_name
-                request.session[constants.USER] = session_user
-                lib.views.load_hypervisor_projects(request, hypervisor, domain, username, password)
-                return lib.views.mark_project_selection(request, project_id)
+    if not domain:
+        # login django_admin to session so that user can also visit admin site.
+        django_login(request, sol_user)
+        # set session variables.
+        request.session[constants.IS_DJANGO_ADMIN] = True
+        request.session[constants.USER] = {constants.USERNAME: username}
+    else:
+        # for SOL user, we should put first name in session, to show welcome message.
+        name = sol_user.full_name.split()
+        session_user = {constants.USERNAME: username, constants.USER_FIRST_NAME: name[0]}
+        request.session[constants.USER_HYPERVISORS] = db_service.get_hypervisor_of_user(username)
+        if sol_user.default_project:
+            hypervisor = sol_user.default_project.hypervisor.host
+            project_id = sol_user.default_project.project_id
+            project_name = sol_user.default_project.name
+            domain, username, password = db_service.get_user_creds(hypervisor, username)
+            session_user[constants.DEFAULT_HYPERVISOR] = hypervisor
+            session_user[constants.DEFAULT_PROJECT] = project_name
             request.session[constants.USER] = session_user
-        return load_dashboard(request)
-
-    return render(request, constants.LOGIN_TEMPLATE, {constants.ERROR_MESSAGE: auth_resp[constants.ERROR_MESSAGE]})
+            lib.views.load_hypervisor_projects(request, hypervisor, domain, username, password)
+            return lib.views.mark_project_selection(request, project_id)
+        request.session[constants.USER] = session_user
+    return load_dashboard(request)
 
 
 def logout(request):
@@ -124,14 +122,12 @@ def create_user(request):
     # in case if it's GET request redirect to create user page.
     if request.method == constants.GET:
         return render(request, constants.CREATE_USER_TEMPLATE)
-    # get user details from auth AD and pass username
-    user_detail = ad.retrieve_user_details(db_service.get_auth_ad(), request.POST["id"])
-    if constants.ERROR_MESSAGE in user_detail:
-        return list_sol_users(request, error_message=user_detail[constants.ERROR_MESSAGE])
-
-    user_detail[constants.USER_PASSWORD] = request.POST["new_password"]
-    # pass the user's details taken from auth AD to create user in local AD
     try:
+        # get user details from auth AD and pass username
+        user_detail = ad.retrieve_user_details(db_service.get_auth_ad(), request.POST["id"])
+
+        user_detail[constants.USER_PASSWORD] = request.POST["new_password"]
+    # pass the user's details taken from auth AD to create user in local AD
         ad.create_user(db_service.get_local_ad(), user_detail)
     except Exception as e:
             return list_sol_users(request, error_message=e.message)
@@ -410,10 +406,10 @@ def change_password(request):
     new_password = request.POST['new_password']
 
     if constants.IS_DJANGO_ADMIN in request.session:
-        auth = ad.sol_authentication(username, old_password)
-        if not auth[constants.AUTH]:
-            return render(request, constants.CHANGE_PASSWORD_TEMPLATE,
-                          {constants.ERROR_MESSAGE: 'Invalid old password, please try again.'})
+        try:
+            ad.sol_authentication(username, old_password)
+        except Exception as e:
+            return render(request, constants.CHANGE_PASSWORD_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
         db_service.change_password(username, new_password)
     else:
         try:
@@ -422,3 +418,8 @@ def change_password(request):
             return render(request, constants.CHANGE_PASSWORD_TEMPLATE, {constants.ERROR_MESSAGE: e.message})
     return render(request, constants.CHANGE_PASSWORD_TEMPLATE, {constants.MESSAGE: "Password changed successfully."})
 
+
+def hypervisor_user_management(request, username=None, message=None, error_message=None):
+    return render(request, constants.HYPERVISOR_USER_MGMT_TEMPLATE,
+                  {'mappings': db_service.get_user_hypervisor_mapping(username), constants.MESSAGE: message,
+                   constants.ERROR_MESSAGE: error_message})

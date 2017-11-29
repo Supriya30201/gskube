@@ -74,7 +74,7 @@
                                 <a href="{% url 'modify_user' user.username%}" data-toggle="modal" >Modify</a>
                             </li>
                              <li>
-                                <a href="" data-toggle="modal" >Add in Openstack</a>
+                                <a href="{% url 'hypervisor_user_management' user.username%}" data-toggle="modal" >Add to Hypervisor</a>
                             </li>
                             {% if user.active == 0 %}
                             <li>

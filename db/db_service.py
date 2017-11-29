@@ -262,6 +262,19 @@ def get_hypervisor_users(hypervisor_id):
     return hypervisor_users
 
 
+def get_user_hypervisor_mapping(user_name):
+    user_hypervisors = sol_db.HypervisorUser.objects.filter(user=user_name, has_access=True)
+    if not user_hypervisors:
+        return None
+    user_hypervisors_list = []
+    for user_hypervisor in user_hypervisors:
+        user_hypervisors_list.append({
+            'host': user_hypervisor.hypervisor.host,
+            'user_id': user_hypervisor.hypervisor_user_id
+        })
+    return user_hypervisors_list
+
+
 def set_hypervisor_user_access(user_name, hypervisor_id, access=True):
     user = get_user(user_name)
     hypervisor = sol_db.Hypervisor.objects.get(id=hypervisor_id)

@@ -20,63 +20,38 @@ def sol_authentication(username, password, domain=None):
     """
     # prepare response dict, setting default ath to False and default error message.
     # depending on situation, both variables can be changed.
-    response_dict = {
-        constants.AUTH: False,
-        constants.ERROR_MESSAGE: "Invalid Credentials"
-    }
     # if domain is not specified, check for django_admin authentication.
     if not domain:
         # using default authenticate method of django framework.
         user = authenticate(username=username, password=password)
         if not user:  # Invalid credentials
-            return response_dict  # no need to make any changes to default dict.
+            raise ActiveDirectoryException(message="Invalid credentials.")
         if not user.is_superuser:  # Only Superuser is allowed to login.
-            response_dict[constants.ERROR_MESSAGE] = "Authorization Exception, Please contact Administrator."
-            return response_dict
-        response_dict[constants.AUTH] = True  # as auth is successful changing the auth flag.
-        response_dict[constants.DJANGO_USER] = user  # passing the user for further process if any.
-        return response_dict
+            raise ActiveDirectoryException(message="Authorization Exception, Please contact Administrator.")
+        return user
 
-    try:
-        # getting the sol_user from database
-        user = sol_db.User.objects.filter(username=username)
+    # getting the sol_user from database
+    user = sol_db.User.objects.filter(username=username)
 
-        # if user is not there in db
-        if not user:
-            response_dict[constants.ERROR_MESSAGE] = "User does not exist/inactive, Please contact Administrator."
-            return response_dict
+    # if user is not there in db
+    if not user:
+        raise ActiveDirectoryException(message="User does not exist/inactive, Please contact Administrator.")
 
-        user = user.first()
-        # also if user is deleted or not active we need to give same exception
-        if user.deleted or not user.active:
-            response_dict[constants.ERROR_MESSAGE] = "User does not exist/inactive, Please contact Administrator."
-            return response_dict
+    user = user.first()
+    # also if user is deleted or not active we need to give same exception
+    if user.deleted or not user.active:
+        raise ActiveDirectoryException(message="User does not exist/inactive, Please contact Administrator.")
 
-        # getting the AD details
-        auth_ad = db_service.get_auth_ad()
-        # checking if AD is not configured.
-        if not auth_ad:
-            response_dict[constants.ERROR_MESSAGE] = "Active directory not configured, Please contact Administrator"
-            return response_dict
-        # connecting to the AD with given credentials.
-        connection = ldap_connection(auth_ad[constants.AUTH_AD_HOST], auth_ad[constants.AUTH_AD_PORT], domain, username,
-                                     password)
-        connection.unbind_s()
-    except ldap.INVALID_CREDENTIALS:
-        return response_dict  # no need to change default message.
-    except ldap.SERVER_DOWN:  # Unable to connect to Active Directory
-        response_dict[constants.ERROR_MESSAGE] = "Unable to connect to AD Server, Please contact Administrator"
-        return response_dict
-    except ldap.LDAPError, e:  # other LDAP error
-        if isinstance(e.message, dict) and 'desc' in e.message:
-            response_dict[constants.ERROR_MESSAGE] = e.message['desc']  # passing the error message
-            return response_dict
-        else:
-            response_dict[constants.ERROR_MESSAGE] = "Unable to communicate to Active Directory."
-            return response_dict
-    response_dict[constants.AUTH] = True  # as there is no issue auth is successful.
-    response_dict[constants.SOL_USER] = user  # passing user for further process if any.
-    return response_dict
+    # getting the AD details
+    auth_ad = db_service.get_auth_ad()
+    # checking if AD is not configured.
+    if not auth_ad:
+        raise ActiveDirectoryException(message="Active directory not configured, Please contact Administrator")
+    # connecting to the AD with given credentials.
+    connection = ldap_connection(auth_ad[constants.AUTH_AD_HOST], auth_ad[constants.AUTH_AD_PORT], domain, username,
+                                 password)
+    connection.unbind_s()
+    return user
 
 
 def retrieve_user_details(active_directory, username):
@@ -97,9 +72,7 @@ def retrieve_user_details(active_directory, username):
         attributes = ["distinguishedName", "description", 'name', 'SamAccountName', 'givenName', 'sn', 'mail']
         ldap_result_id = conn.search(active_directory[constants.AUTH_AD_DN], ldap.SCOPE_SUBTREE, ad_filter, attributes)
         result_set = []
-        user_detail = {
-            constants.USERNAME: username,
-        }
+        user_detail = {}
         pattern = r'^\s*(\[\'\s*)?|(\s*\'\])?\s*$'
         while 1:
             result_type, result_data = conn.result(ldap_result_id, 0)
@@ -114,18 +87,24 @@ def retrieve_user_details(active_directory, username):
                         if sam_account_name == username:
                             user_detail[constants.USER_FULL_NAME] = regex.sub(pattern, '', str(temp_dict['name']))
                             user_detail[constants.USER_EMAIL] = regex.sub(pattern, '', str(temp_dict['mail']))
+
+        if not user_detail:
+            raise ActiveDirectoryException(message="User not found, please check user id.")
+
+        user_detail[constants.USERNAME]= username
+        return user_detail
     except ldap.SERVER_DOWN:
-        return {constants.ERROR_MESSAGE: "Unable to connect to AD, Please try again."}
+        raise ActiveDirectoryException(message="Unable to connect to AD, Please try again.")
     except ldap.LDAPError, e:
         if isinstance(e.message, dict) and 'desc' in e.message:
-            return {constants.ERROR_MESSAGE: "Other LDAP error: " + e.message['desc']}
+            raise ActiveDirectoryException(message="Other LDAP error: " + e.message['desc'])
         else:
-            return {constants.ERROR_MESSAGE: "Other LDAP error: " + e}
+            raise ActiveDirectoryException(message="Other LDAP error: " + e)
     finally:
         if conn is not None:
             conn.unbind_s()
 
-    return user_detail
+
 
 
 def create_user(active_directory, user_detail):
@@ -227,7 +206,8 @@ def ldap_connection(host, port, domain, username, password):
         connection.simple_bind_s(domain_user, password)  # connect to ldap
         return connection
     except Exception as e:
-        e.message['desc'] = e.message['desc'] + "(" + host + ")"  # modify error message and add host details.
+        if 'desc' in e.message:
+            e.message = e.message['desc'] + "(" + host + ")"  # modify error message and add host details.
         raise e
 
 
