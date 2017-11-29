@@ -17,9 +17,10 @@ def load_dashboard(request, error_message=None):
     """
     This method just loads dashboard page.
     :param request:
+    :param error_message
     :return:
     """
-    return render(request, constants.DASHBOARD_TEMPLATE, {})
+    return render(request, constants.DASHBOARD_TEMPLATE, {'hypervisor_exception': error_message})
 
 
 def login(request):
@@ -90,7 +91,7 @@ def list_sol_users(request, message=None, error_message=None):
     :return:
     """
     # Get all users from user table
-    users = sol_db.User.objects.all()
+    users = db_service.get_user()
     user_list = []
 
     # will enable this while adding code for single page project management
@@ -278,7 +279,7 @@ def generate_openvpn_certificate(request, username=None):
     except Exception as e:
         if constants.IS_DJANGO_ADMIN in request.session:
             return list_sol_users(request, error_message=e.message)
-        return load_dashboard(request)
+        return load_dashboard(request, error_message=e.message)
 
 
 def hypervisor_management(request, hypervisor_id=None, message=None, error_message=None):

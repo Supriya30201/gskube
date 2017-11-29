@@ -69,9 +69,20 @@ width: 60% !Important;
 
         </table>
         <div align="center">
-            <button class="btn btn-primary" style="margin-bottom: 80px;" type="submit">Create user</button>
+            <button class="btn btn-primary" style="margin-bottom: 80px;" type="button" onclick="password_check()">Create user</button>
         </div>
     </form>
 </div>
+
+<script>
+    function password_check(){
+        if(document.create_user.new_password.value == document.create_user.confirm_password.value){
+            document.create_user.submit();
+            return true;
+        }
+        alert("Password doesn't match, please try again.");
+        return false;
+    }
+</script>
 
 {% endblock %}
