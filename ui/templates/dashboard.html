@@ -61,11 +61,13 @@
         </div>
         {% endif %}
 
+        {% if not request.session.is_django_admin %}
         <div class="panel-body">
             <a href="{% url 'hypervisor_preference'%}">
                 <span class="glyphicon glyphicon-list-alt"> </span> Hypervisor Preferences
             </a>
         </div>
+        {% endif %}
     </div>
 </div>
 

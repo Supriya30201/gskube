@@ -206,7 +206,9 @@ def delete_hypervisor(hypervisor_id):
     hypervisor.save()
 
 
-def get_hypervisor(host):
+def get_hypervisor(host=None, id=None):
+    if id:
+        return sol_db.Hypervisor.objects.get(id=id)
     return sol_db.Hypervisor.objects.get(host=host)
 
 

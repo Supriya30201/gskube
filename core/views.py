@@ -282,12 +282,19 @@ def generate_openvpn_certificate(request, username=None):
         return load_dashboard(request, error_message=e.message)
 
 
-def hypervisor_management(request, hypervisor_id=None, message=None, error_message=None):
-    if hypervisor_id:
+def hypervisor_management(request, message=None, error_message=None):
+    if 'hypervisor_id' in request.POST:
+        hypervisor_id = request.POST['hypervisor_id']
         sol_user_id = db_service.get_sol_user_id(hypervisor_id=hypervisor_id)
-        hypervisor = request.session[constants.SELECTED_HYPERVISOR_OBJ]
+        db_hypervisor = db_service.get_hypervisor(id=hypervisor_id)
+        hypervisor = {constants.TYPE: db_hypervisor.type, constants.PROTOCOL: db_hypervisor.protocol,
+                      constants.HOST: db_hypervisor.host, constants.PORT: db_hypervisor.port,
+                      constants.DOMAIN: request.POST[constants.DOMAIN],
+                      constants.USERNAME: request.POST[constants.USERNAME],
+                      constants.PASSWORD: request.POST[constants.PASSWORD]}
         try:
             adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+            adapter.generate_admin_auth()
             adapter.delete_user(sol_user_id)
             db_service.delete_hypervisor(hypervisor_id)
             message = "Hypervisor removed successfully."

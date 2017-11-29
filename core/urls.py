@@ -19,7 +19,6 @@ urlpatterns = [
         name="add_remove_ad_group"),
     url(r'^hypervisor_management/', include([
         url(r'^$', views.hypervisor_management, name='hypervisor_management'),
-        url(r'(?P<hypervisor_id>[\d-]+)/$', views.hypervisor_management, name="delete_hypervisor"),
     ])),
     url(r'^create_hypervisor/$', views.create_hypervisor, name="create_hypervisor"),
     # url for getting list of user for any hypervisor, adding and removing user from hypervisor
