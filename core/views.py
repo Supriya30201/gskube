@@ -326,7 +326,7 @@ def create_hypervisor(request):
                                        constants.USER_FULL_NAME: constants.HYPERVISOR_SOLUSER_NAME})
     db_service.save_user_credentials(user.username, hypervisor.host, domain, constants.HYPERVISOR_SOLUSER_NAME,
                                      user_detail['user_password'])
-    db_service.update_hypervisor_user_id(user, hypervisor, user_detail['user_id'])
+    db_service.update_hypervisor_user_id(user.username, hypervisor.host, user_detail['user_id'])
 
     return hypervisor_management(request, message='Hypervisor added successfully.')
 
@@ -420,6 +420,31 @@ def change_password(request):
 
 
 def hypervisor_user_management(request, username=None, message=None, error_message=None):
+    if request.method == constants.POST:
+        username = request.POST[constants.USERNAME]
+        host = request.POST[constants.HOST]
+        hypervisor = db_service.get_hypervisor(host)
+        domain, sol_username, password = db_service.get_user_creds(host, constants.HYPERVISOR_SOLUSER_NAME)
+        user = db_service.get_user(username)
+        try:
+            adapter = factory.get_adapter(hypervisor.type, {constants.PROTOCOL: hypervisor.protocol,
+                                                            constants.HOST: hypervisor.host,
+                                                            constants.PORT: hypervisor.port, constants.DOMAIN: domain,
+                                                            constants.USERNAME: sol_username,
+                                                            constants.PASSWORD: password})
+            adapter.generate_admin_auth()
+            if 'user_id' in request.POST:
+                user_id = request.POST['user_id']
+                adapter.delete_user(user_id)
+                user_id = None
+                message = "User deleted successfully."
+            else:
+                user_id = adapter.create_user(user.username, request.POST['password'], user.email_id, user.full_name)
+                message = "User created successfully."
+            db_service.update_hypervisor_user_id(username, host, user_id)
+        except Exception as e:
+            error_message = e.message
+
     return render(request, constants.HYPERVISOR_USER_MGMT_TEMPLATE,
-                  {'mappings': db_service.get_user_hypervisor_mapping(username), constants.MESSAGE: message,
-                   constants.ERROR_MESSAGE: error_message})
+                  {'mappings': db_service.get_user_hypervisor_mapping(username), constants.USERNAME: username,
+                   constants.MESSAGE: message, constants.ERROR_MESSAGE: error_message})

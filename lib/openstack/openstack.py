@@ -37,11 +37,9 @@ class Openstack(sol_adapter.SolAadapter):
             for role in self.get_roles():
                 roles.append(role[constants.ROLE_ID])
 
-            user_id = keystone.create_user(self.keystone_client, constants.HYPERVISOR_SOLUSER_NAME,
-                                           constants.HYPERVISOR_SOLUSER_PASSWORD,
-                                           constants.HYPERVISOR_SOLUSER_EMAIL,
-                                           constants.HYPERVISOR_SOLUSER_DESCRIPTION,
-                                           roles, project_id)
+            user_id = self.create_user(constants.HYPERVISOR_SOLUSER_NAME, constants.HYPERVISOR_SOLUSER_PASSWORD,
+                                       constants.HYPERVISOR_SOLUSER_EMAIL, constants.HYPERVISOR_SOLUSER_DESCRIPTION,
+                                       roles, project_id)
             return {'user_id': user_id, 'user_password': constants.HYPERVISOR_SOLUSER_PASSWORD}
 
         except OpenstackException as oe:
@@ -151,6 +149,10 @@ class Openstack(sol_adapter.SolAadapter):
     def get_users(self):
         self.load_keystone_client()
         return keystone.list_user(self.keystone_client)
+
+    def create_user(self, username, password, email, full_name, roles=None, project_id=None):
+        self.load_keystone_client()
+        return keystone.create_user(self.keystone_client, username, password, email, full_name, roles, project_id)
 
     def delete_user(self, user_id):
         self.load_keystone_client()

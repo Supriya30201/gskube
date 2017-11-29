@@ -5,73 +5,147 @@
 {% load static %}
 <head>
     <style>
- .red{
- color:#ea0e0e;
- }
-
+         .red{
+         color:#ea0e0e;
+         }
     </style>
 </head>
 <h3 align="center">Add/Remove user from Openstack</h3>
-<form method="POST">
 
-    <div align="right" style="padding-right:10px;">
-        <div align="left">
-            {% if message %}
-            <div align="center" class="alert alert-success fade in" style="width:350px;">
-                <a class="close" data-dismiss="alert" href="#">&times;</a>
-                <p>{{message}}</p>
-            </div>
-            {% endif %}
-            {% if error_message %}
-            <div id="success-alert" align="center" class="alert alert-danger fade in" style="width:350px;">
-                <a class="close" data-dismiss="alert" href="#">&times;</a>
-                <p>{{error_message}}</p>
-            </div>
-            {% endif %}
+<div align="right" style="padding-right:10px;">
+    <div align="left">
+        {% if message %}
+        <div align="center" class="alert alert-success fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{message}}</p>
         </div>
+        {% endif %}
+        {% if error_message %}
+        <div id="success-alert" align="center" class="alert alert-danger fade in" style="width:350px;">
+            <a class="close" data-dismiss="alert" href="#">&times;</a>
+            <p>{{error_message}}</p>
+        </div>
+        {% endif %}
     </div>
+</div>
 
-    <ul class="breadcrumb">
-  <li><a href="{% url 'sol_users' %}">Users Information</a>  </li>
-  <li> Add/Remove Openstack</li>
+<ul class="breadcrumb">
+    <li><a href="{% url 'sol_users' %}">Users Information</a></li>
+    <li> Add/Remove Openstack</li>
 </ul>
 
-    <div>
+<div>
 
-        <table class="table table-striped table-bordered table-hover display" id="rctable" cellspacing="0" width="auto">
+    <table class="table table-striped table-bordered table-hover display" id="rctable" cellspacing="0" width="auto">
 
-            <thead>
-            <tr>
-                <th>Host</th>
-                <th>Action</th>
-            </tr>
-            </thead>
-            <tbody>
-            {% for mapping in mappings %}
-            <tr>
-                <td>{{ mapping.host }}</td>
+        <thead>
+        <tr>
+            <th>Host</th>
+            <th>Action</th>
+        </tr>
+        </thead>
+        <tbody>
+        {% for mapping in mappings %}
+        <tr>
+            <td>{{ mapping.host }}</td>
 
-                {% if mapping.user_id != "" %}
-                <td>
-                    <span class="red glyphicon glyphicon-remove"></span>
-                    <a href="">
-                        <b>Remove User</b>
-                    </a>
-                </td>
-                {% else %}
-                <td>
-                    <span class="glyphicon glyphicon-user"></span>
-                    <a href="">
-                        <b>Create User</b>
-                    </a>
-                </td>
-                {% endif %}
-            </tr>
-            {% endfor %}
-            </tbody>
-        </table>
+            {% if mapping.user_id %}
+            <td>
+                <span class="red glyphicon glyphicon-remove"></span>
+                <a href="#" onclick="submit_delete_hypervisor_user_form('{{mapping.host}}', '{{mapping.user_id}}')">
+                    <b>Remove User</b>
+                </a>
+            </td>
+            {% else %}
+            <td>
+                <span class="glyphicon glyphicon-user"></span>
+                <a href="#" id="create_user" onclick="set_host('{{mapping.host}}')">
+                    <b>Create User</b>
+                </a>
+            </td>
+            {% endif %}
+        </tr>
+        {% endfor %}
+        </tbody>
+    </table>
+
+    <form name="delete_hypervisor_user_form" method="post" action="{% url 'create_hypervisor_user'%}">
+        {% csrf_token %}
+        <input type="hidden" name="user_id" value=""/>
+        <input type="hidden" name="host" value=""/>
+        <input type="hidden" name="username" value="{{username}}"/>
+    </form>
+
+    <div class="col-sm-9 col-sm-offset-3 col-md-10 col-md-offset-2 main">
+        <div id="user_password" class="modal fade" role="dialog">
+            <div class="modal-dialog">
+                <div class="modal-content" style="width:290px">
+                    <div class="modal-header">
+                        <button type="submit" class="close" data-dismiss="modal">&times;</button>
+                        <h4 class="modal-title">Please provide password</h4>
+                    </div>
+                    <form action="{% url 'create_hypervisor_user'%}" method="post" name="create_hypervisor_user"
+                          id="create_hypervisor_user">
+                        {% csrf_token %}
+                        <input type="hidden" name="username" value="{{username}}"/>
+                        <input type="hidden" name="host" value=""/>
+                        <div class="modal-body" align="center">
+                            <table cellpadding="10" cellspacing="10">
+                                <tr>
+                                    <td style="padding:10px">
+                                        <input class="form-control required" placeholder="Password" name="password"
+                                               type="password" required>
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <td style="padding:10px">
+                                        <input class="form-control required" placeholder="Confirm Password"
+                                               name="confirm_password" type="password" required>
+                                    </td>
+                                </tr>
+                            </table>
+                            <p id="msg" style="color:red"></p>
+                        </div>
+                        <div class="modal-footer">
+                            <button type="button" class="btn btn-primary"
+                                    onclick="submit_create_hypervisor_user_form()">
+                                Save
+                            </button>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
     </div>
-</form>
+</div>
 
+<script>
+        $("#create_user").on("click", function () {
+            $modal = $('#user_password');
+            $modal.modal('show');
+            return;
+        });
 
+        function submit_create_hypervisor_user_form(){
+            if(document.create_hypervisor_user.password.value == document.create_hypervisor_user.confirm_password.value){
+                document.create_hypervisor_user.submit();
+                return true;
+            }
+            document.getElementById("msg").innerHTML = "Password doesn't match. Please try again.";
+            return false;
+        }
+        function set_host(host){
+            document.create_hypervisor_user.host.value = host;
+        }
+
+        function submit_delete_hypervisor_user_form(host, user_id){
+            if(!confirm("Are you sure you want to delete user from hypervisor ?")){
+                return;
+            }
+            document.delete_hypervisor_user_form.host.value = host;
+            document.delete_hypervisor_user_form.user_id.value = user_id;
+            document.delete_hypervisor_user_form.submit();
+        }
+
+</script>
 {% endblock %}

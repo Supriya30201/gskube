@@ -242,7 +242,9 @@ def save_user_credentials(user, hypervisor, domain, username, password):
 
 
 def update_hypervisor_user_id(user, hypervisor, user_id):
-    hypervisor_user, _ = sol_db.HypervisorUser.objects.get_or_create(user=user, hypervisor=hypervisor)
+    db_user = sol_db.User.objects.get(username=user)
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
+    hypervisor_user, _ = sol_db.HypervisorUser.objects.get_or_create(user=db_user, hypervisor=db_hypervisor)
     hypervisor_user.hypervisor_user_id = user_id
     hypervisor_user.save()
 

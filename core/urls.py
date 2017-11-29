@@ -39,5 +39,8 @@ urlpatterns = [
     url(r'^hypervisor_user_management/', include([
         url(r'^(?P<username>[\w\d-]+)/$', views.hypervisor_user_management, name="hypervisor_user_management")
     ])),
-
+    url(r'^create_hypervisor_user/', include([
+        url('^$', views.hypervisor_user_management, name="create_hypervisor_user"),
+        url('(P<host>[\w\d.-_]+)/(?P<username>[\w\d-]+)/$', views.hypervisor_user_management, name="create_hypervisor_user"),
+    ])),
 ]
