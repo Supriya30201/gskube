@@ -42,7 +42,11 @@ def save_project_stats(hypervisor, timestamp, project_id, project_stats):
 
 
 def save_vm_stats(instance_id, timestamp, vm_stats):
-    db_instance = sol_db.Instance.objects.get(instance_id=instance_id)
+    db_instance = sol_db.Instance.objects.filter(instance_id=instance_id)
+    if db_instance:
+        db_instance = db_instance.first()
+    else:
+        db_instance = None
     vm_report = sol_db.VMReport()
     vm_report.instance = db_instance
     vm_report.time = timestamp

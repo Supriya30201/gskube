@@ -11,6 +11,7 @@ from core import services
 from tabulate import tabulate
 import sol_email
 import reporting
+from datetime import datetime
 
 logger = logging.getLogger(__name__)
 
@@ -69,10 +70,11 @@ def login(request):
             lib.views.load_hypervisor_projects(request, hypervisor, domain, username, password)
             return lib.views.mark_project_selection(request, project_id)
         request.session[constants.USER] = session_user
+    request.session['last_activity'] = datetime.now().isoformat()
     return load_dashboard(request)
 
 
-def logout(request):
+def logout(request, error_message=None):
     """
     clear the session and redirect to login page.
     :param request:
@@ -81,7 +83,7 @@ def logout(request):
     for key in request.session.keys():
         del request.session[key]
     request.session.flush()
-    return render(request, constants.LOGIN_TEMPLATE)
+    return render(request, constants.LOGIN_TEMPLATE, {constants.ERROR_MESSAGE: error_message})
 
 
 def list_sol_users(request, message=None, error_message=None):
