@@ -5,10 +5,10 @@
 
 <div class="container col-md-12" align="center">
 
-    {% if not request.session.selected_hypervisor and not request.session.is_django_admin %}
+    {% if not request.session.selected_hypervisor_obj and not request.session.is_django_admin %}
     Hi {{ request.session.user.user_first_name }}, Please connect to hypervisor.
     {% endif %}
-    {% if request.session.selected_hypervisor and not request.session.selected_project %}
+    {% if request.session.selected_hypervisor and not request.session.selected_project and not request.session.is_django_admin %}
     Hi {{ request.session.user.user_first_name }}, Please connect project.
     {% endif %}
     <div class="starter-template">

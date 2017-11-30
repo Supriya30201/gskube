@@ -272,7 +272,7 @@ def create_instance(request, modify=False):
             server_id = adapter.create_server(instance['name'], instance['image_id'], instance['flavor_id'],
                                               instance['network_id'])
             db_service.update_requested_instance(request_id=instance_id, instance_id=server_id)
-            subject = 'SOL (created): Instance ' + instance.instance_name + ' has created.'
+            subject = 'SOL (created): Instance ' + instance['name'] + ' has created.'
             vm_table = services.get_instance_table(instance['name'], instance['host'], instance['project'],
                                                    instance['doc'], instance['doe'], 'Approved By',
                                                    request.session[constants.USER][constants.USER_FIRST_NAME])
@@ -286,7 +286,7 @@ def create_instance(request, modify=False):
     elif request_type == "reject":
         instance = get_instance(request, instance_id)
         db_service.remove_instance(instance_id)
-        subject = 'SOL (Rejected): Instance ' + instance.instance_name + ' has been rejected.'
+        subject = 'SOL (Rejected): Instance ' + instance['name'] + ' has been rejected.'
         vm_table = services.get_instance_table(instance['name'], instance['host'], instance['project'],
                                                instance['doc'], instance['doe'], 'Rejected By',
                                                request.session[constants.USER][constants.USER_FIRST_NAME])

@@ -110,7 +110,9 @@ ul.breadcrumb li a:hover {
 
         var availableTags = [
         {% for user in users %}
-            { value: '{{ user.username }}', label: '{{ user.full_name }}' },
+            {% if user.active %}
+                { value: '{{ user.username }}', label: '{{ user.full_name }}' },
+            {% endif %}
         {% endfor %}
     ];
 

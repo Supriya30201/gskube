@@ -165,8 +165,7 @@ def get_user(username=None):
     :return:
     """
     if not username:
-        return sol_db.User.objects.filter(deleted=False, active=True).exclude(
-            username=constants.HYPERVISOR_SOLUSER_NAME).all()
+        return sol_db.User.objects.filter(deleted=False).exclude(username=constants.HYPERVISOR_SOLUSER_NAME).all()
 
     user = sol_db.User.objects.filter(username=username)
     if user:
