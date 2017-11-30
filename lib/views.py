@@ -4,7 +4,9 @@ from django.shortcuts import HttpResponseRedirect
 from . import factory
 from exception.openstack_session_exception import OpenstackSessionException
 import core
+from core import sol_email
 from db import db_service
+from core import services
 
 
 def load_hypervisor_projects(request, hypervisor=None, domain=None, username=None, password=None):
@@ -270,15 +272,33 @@ def create_instance(request, modify=False):
             server_id = adapter.create_server(instance['name'], instance['image_id'], instance['flavor_id'],
                                               instance['network_id'])
             db_service.update_requested_instance(request_id=instance_id, instance_id=server_id)
+            subject = 'SOL (created): Instance ' + instance.instance_name + ' has created.'
+            vm_table = services.get_instance_table(instance['name'], instance['host'], instance['project'],
+                                                   instance['doc'], instance['doe'], 'Approved By',
+                                                   request.session[constants.USER][constants.USER_FIRST_NAME])
+            message = "Hi " + instance['user_f_name'] + ", \n\tYour virtual machine " + \
+                      instance['name'] + " has created. Please, check Virtual machine Details below,\n\n" + \
+                      vm_table + "\n\nFor any issue, please get in touch with Administrator."
+            sol_email.send_mail(receiver=instance.user.email_id, subject=subject, message=message)
             return instance_request(request, load_instance=True, message="Requested instance created successfully.")
         except Exception as e:
             return instance_request(request, load_instance=True, error_message=e.message)
     elif request_type == "reject":
+        instance = get_instance(request, instance_id)
         db_service.remove_instance(instance_id)
+        subject = 'SOL (Rejected): Instance ' + instance.instance_name + ' has been rejected.'
+        vm_table = services.get_instance_table(instance['name'], instance['host'], instance['project'],
+                                               instance['doc'], instance['doe'], 'Rejected By',
+                                               request.session[constants.USER][constants.USER_FIRST_NAME])
+        message = "Hi " + instance['user_f_name'] + ", \n\tYour virtual machine " + \
+                  instance['name'] + " has been rejected. Please, check Virtual machine Details below,\n\n" + \
+                  vm_table + "\n\nFor any issue, please get in touch with Administrator."
+        sol_email.send_mail(receiver=instance.user.email_id, subject=subject, message=message)
         return instance_request(request, load_instance=True, message="Request rejected successfully.")
     else:
         instance = get_instance(request, instance_id)
-        return render(request, constants.CREATE_INSTANCE_TEMPLATE, {'instance': instance, 'modify': True, 'button_name': 'Modify & Approve'})
+        return render(request, constants.CREATE_INSTANCE_TEMPLATE, {'instance': instance, 'modify': True,
+                                                                    'button_name': 'Modify & Approve'})
 
 
 def get_instance(request, instance_id):
@@ -337,7 +357,10 @@ def instance_request(request, load_instance=False, message=None, error_message=N
                     'image_name': instance_image,
                     'username': instance.user.username,
                     'user_f_name': instance.user.full_name,
-                    'doe': instance.doe.isoformat()
+                    'doe': instance.doe.isoformat(),
+                    'doc': instance.doc.isoformat(),
+                    'project': instance.project.name,
+                    'host': instance.project.hypervisor.host
                 })
         request.session[constants.REQUESTED_INSTANCES] = instance_list
         return render(request, constants.REQUESTED_INSTANCES_TEMPLATE, {constants.MESSAGE: message,
@@ -433,6 +456,15 @@ def instance_action(request, instance_id, action):
             return HttpResponseRedirect(vnc_url)
         elif action == "delete":
             adapter.delete_instance(instance_id)
+            instance = db_service.get_created_instances(instance_id=instance_id)
+            subject = 'SOL (deleted): Instance ' + instance.instance_name + ' has deleted.'
+            vm_table = services.get_instance_table(instance.instance_name, instance.project.hypervisor.host,
+                                                   instance.project.name, instance.doc, instance.doe, "Deleted By",
+                                                   request.session[constants.USER][constants.USER_FIRST_NAME])
+            message = "Hi " + instance.user.full_name + ", \n\tYour virtual machine " + instance.instance_name + \
+                      " has deleted. Please, check Virtual machine Details below,\n\n" + vm_table + \
+                      "\n\nFor any issue, please get in touch with Administrator."
+            sol_email.send_mail(receiver=instance.user.email_id, subject=subject, message=message)
             db_service.remove_instance(instance_id=instance_id)
             return manage_instances(request, message="Delete instance request submitted successfully.")
     except Exception as e:

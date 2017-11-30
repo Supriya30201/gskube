@@ -155,6 +155,7 @@ def delete_user(username):
     user = sol_db.User.objects.get(username=username)
     user.deleted = True
     user.save()
+    return user
 
 
 def get_user(username=None):
@@ -341,7 +342,10 @@ def update_requested_instance(request_id, instance_id=None, image=None, flavor=N
     instance_request.save()
 
 
-def get_created_instances(hypervisor=None, project=None, user=None, request_id=None, all_created=False):
+def get_created_instances(hypervisor=None, project=None, user=None, request_id=None, all_created=False,
+                          instance_id=None):
+    if instance_id:
+        return sol_db.Instance.objects.get(instance_id=instance_id)
     if all_created:
         instances = sol_db.Instance.objects.filter(requested=False)
         if not instances:

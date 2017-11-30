@@ -5,6 +5,7 @@ import constants
 from wsgiref.util import FileWrapper
 import os
 from django.http import HttpResponse
+from tabulate import tabulate
 
 
 key = "openstack-box_007"
@@ -89,3 +90,9 @@ def generate_openvpn_certificate(openvpn_conf, username):
     response['Content-Disposition'] = "attachment; filename=" + username + ".zip"
     os.remove(local_file)
     return response
+
+
+def get_instance_table(name, host, project, doc, doe, action, user_full_name):
+    return tabulate([["Instance Name : ", name], ["Hypervisor : ", host],
+                     ["Project : ", project], ["Date of Request:", doc],
+                     ["Expiry Date:", doe], [action, user_full_name]])

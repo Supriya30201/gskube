@@ -2,13 +2,14 @@ from django.shortcuts import render
 from . import constants
 from lib.active_directory import active_directory as ad
 from django.contrib.auth import login as django_login
-from db import models as sol_db
 from db import db_service
 import logging
 from lib import factory
 import lib
 from exception.sol_exception import SOLException
 from core import services
+from tabulate import tabulate
+import sol_email
 
 logger = logging.getLogger(__name__)
 
@@ -135,6 +136,17 @@ def create_user(request):
     # add that created user in SOL database
     db_service.create_user(user_detail)
 
+    subject = " User(created): Welcome to ServiceOnline."
+    users_information_table = tabulate(
+        [["Name : ", user_detail[constants.USER_FULL_NAME]], ["EmailAddress : ", user_detail[constants.USER_EMAIL]],
+         ["Username : ", user_detail[constants.USERNAME]], ["Password:", user_detail[constants.USER_PASSWORD]]])
+    name = user_detail[constants.USER_FULL_NAME].split()
+    fname = name[0]
+    message = "Hi " + fname + ", \n\tWelcome to ServiceOnline. \nRecently Administrator created your account on " \
+                              "ServiceOnline. Please find the access details below, \n\n" + users_information_table + \
+              "\n\nIn case of any access related issue, please get in touch with Administrator."
+    sol_email.send_mail(receiver=user_detail[constants.USER_EMAIL], subject=subject, message=message)
+
     return list_sol_users(request, message="User created successfully.")
 
 
@@ -153,6 +165,13 @@ def change_user_status(request, username=None):
         list_sol_users(request, error_message="Unable to (de)active user due to : " + e.message)
     # change that user status from SOL database
     db_service.change_user_status(username)
+    user = db_service.get_user(username)
+    fullname = user.full_name.split()
+    subject = 'SOL: Activation/Deactivation from SOL'
+    user_status = "Successfully Activated" if user.active else "Successfully Deactivated"
+    message = "Hi " + fullname[0] + ",\n\tYour account has been " + user_status + \
+              ", Please contact Administrator in case of any issue."
+    sol_email.send_mail(receiver=user.email_id, subject=subject, message=message)
     return list_sol_users(request, message="User (de)activated successfully.")
 
 
@@ -169,7 +188,16 @@ def delete_user(request, username=None):
     except Exception as e:
         list_sol_users(request, error_message=e.message)
     #delete the user from SOL database
-    db_service.delete_user(username)
+    user = db_service.delete_user(username)
+
+    fullname = user.full_name.split()
+    subject = 'Thank you for using ServiceOnline'
+    message = "Hi " + fullname[0] + ",\n\tRecently your account has been deleted from ServiceOnline, now you " \
+                                    "will not be able to access ServiceOnline. Thank you for using our services. " \
+                                    "In case if you again want access of ServiceOnline, please get in touch with " \
+                                    "Administrator."
+    sol_email.send_mail(receiver=user.email_id, subject=subject, message=message)
+
     return list_sol_users(request, message="User deleted successfully.")
 
 
@@ -250,6 +278,15 @@ def add_remove_ad_group(request, username=None, add_group=True):
         ad.add_remove_ad_groups(db_service.get_local_ad(), username, groups, add_group)
     except Exception as e:
         return list_active_directory_group(request, username, error_message=e.message)
+
+    user = db_service.get_user(username)
+    fullname = user.full_name.split()
+    subject = "SOL: add/remove in AD Group"
+    add_remove = "assigned " if add_group else "unassigned "
+    group_info = tabulate(["Group Name : ", groups])
+    message = "Hi " + fullname[0] + ", \n\tYour account's AD configuration has been modified, you are " + add_remove + \
+              " to below groups.\n" + group_info + "\nPlease contact Administrator in case of any issue.\n\n"
+    sol_email.send_mail(receiver=user.email_id, subject=subject, message=message)
 
     return list_active_directory_group(request, username, message="Groups processed successfully.")
 
