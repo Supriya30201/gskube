@@ -92,3 +92,41 @@ def load_report_data():
         adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
         load_hypervisors_stats(adapter, timestamp)
         load_tenant_wise_report(adapter, timestamp)
+
+
+def generate_report():
+    logger.debug("Executing retrive_reports method")
+    reports_dict = {}
+    time = report_service.get_latest_time()
+    hypervisors_report = report_service.get_hypervisor_report(time)
+    reports_dict["hypervisor"] = []
+    for hypervisor_report in hypervisors_report:
+        reports_dict["hypervisor"].append(
+            {str(hypervisor_report.name): {"total_cpu": hypervisor_report.total_cpu,
+                                           "used_cpu": hypervisor_report.used_cpu,
+                                           "total_memory": hypervisor_report.total_memory,
+                                           "used_memory": hypervisor_report.used_memory,
+                                           "total_disk": hypervisor_report.total_disk,
+                                           "used_disk": hypervisor_report.used_disk}})
+    projects_report = report_service.get_project_report(time)
+    reports_dict["Projects"] = []
+    for project_report in projects_report:
+        reports_dict["Projects"].append(
+            {str(project_report.project.name): {"total_cpu": project_report.total_cpu,
+                                                "used_cpu": project_report.used_cpu,
+                                                "total_memory": project_report.total_memory,
+                                                "used_memory": project_report.used_memory,
+                                                "total_disk": project_report.total_disk,
+                                                "used_disk": project_report.used_disk}})
+    vms_report = report_service.get_vm_report(time)
+    reports_dict["VMS"] = []
+    for vm_report in vms_report:
+        reports_dict["VMS"].append(
+            {str(vm_report.instance.instance_name): {"total_cpu": vm_report.total_cpu, "used_cpu": vm_report.used_cpu,
+                                                     "total_memory": vm_report.total_memory,
+                                                     "used_memory": vm_report.used_memory,
+                                                     "total_disk": vm_report.total_disk,
+                                                     "used_disk": vm_report.used_disk,
+                                                     "Project": str(vm_report.instance.project.name),
+                                                     "user": str(vm_report.instance.user.username)}})
+    return reports_dict

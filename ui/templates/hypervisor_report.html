@@ -1,0 +1,346 @@
+{% extends "serviceonline_base_template.html" %}
+{% load static %}
+{% block body %}
+<html>
+<!--{{test|safe}}-->
+<head>
+    <style>
+
+        .nav > li > a:hover, .nav > li > a:focus, .navbar-nav > li > a:focus {
+                    background-image:none !important;
+         }
+         .nav > li > a:hover {
+                    background-color: #337ab7;
+         }
+    </style>
+    <!--Load the AJAX API-->
+    <script type="text/javascript">
+
+    // Load Charts and the corechart package.
+      google.charts.load('current', {'packages':['corechart']})
+
+    // Data passed from view.py
+      var hyper = {{test|safe}};
+      if (!hyper.hasOwnProperty("hypervisor")){
+        alert("Reports not found");
+      }
+
+      // Draw the pie chart for usage of memory disk and cpu  when loaded
+      google.charts.setOnLoadCallback(draw_mem_Chart);
+	  google.charts.setOnLoadCallback(draw_vcpu_Chart);
+	  google.charts.setOnLoadCallback(draw_disk_Chart);
+
+      function draw_mem_Chart() {
+
+        // get hypervisor level data
+   		var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Hypervisor');
+        data.addColumn('number', 'Used Memory');
+        data.addRows(hyper.hypervisor.length);
+        for  (var i = 0; i < hyper.hypervisor.length; i++){
+                for(var hyper_name in hyper.hypervisor[i]){
+                if(hyper.hypervisor.length >1){
+                    data.setCell(i,0,hyper_name);
+                    data.setCell(i,1,hyper.hypervisor[i][hyper_name]['used_memory']);
+                }
+                else{
+                    data.addRows(2);
+                    data.setCell(0,0,'Free');
+                    data.setCell(0,1,hyper.hypervisor[0][hyper_name]['total_memory'] - hyper.hypervisor[0][hyper_name]['used_memory']);
+                    data.setCell(1,0,"Used");
+                    data.setCell(1,1,hyper.hypervisor[0][hyper_name]['used_memory']);
+                }
+                }
+            }
+
+        var formatter = new google.visualization.NumberFormat({
+            fractionDigits:2,
+            suffix: ' MB'
+          });
+
+        formatter.format(data, 1);
+
+        // Set options for Memory pie chart.
+        var options = {title:'Hypervisor Memory', is3D:true, pieSliceText:'value', width:350};
+
+        // Instantiate and draw the chart for Memory.
+       var chart = new google.visualization.PieChart(document.getElementById('Memory_hyp_div'));
+       chart.draw(data, options);
+
+	   google.visualization.events.addListener(chart, 'select', selectHandler);
+
+       // for project level data
+	   function selectHandler() {
+	    var data1 = new google.visualization.DataTable();
+        data1.addColumn('string', 'Projects');
+        data1.addColumn('number', 'Used Memory');
+        data1.addRows(hyper.Projects.length);
+        for  (var i = 0; i < hyper.Projects.length; i++){
+            for(var project_name in hyper.Projects[i]){
+                data1.setCell(i,0,project_name);
+                data1.setCell(i,1,hyper.Projects[i][project_name]['used_memory']);
+            }
+        }
+        formatter.format(data1, 1);
+         var options1 = {title:'Project Memory', is3D:true, pieSliceText:'value', width:350};
+		 var selection = chart.getSelection();
+		 for (var i = 0; i < selection.length; i++) {
+            var item = selection[i];
+			value_selected = data.getValue(item.row, 0);
+			if (value_selected == 'Used'){
+				var chart1 = new google.visualization.PieChart(document.getElementById('Memory_project_div'));
+				chart1.draw(data1, options1);
+				google.visualization.events.addListener(chart1, 'select', selectHandler1);
+				// for VM level data
+				 function selectHandler1(e) {
+				    var options2 = {title:'VM Memory', is3D:true, pieSliceText:'value', width:350};
+					var selection1 = chart1.getSelection();
+					for (var j = 0; j < selection1.length; j++) {
+						var selected_item = selection1[j];
+						selected_value = data1.getValue(selected_item.row, 0);
+						var data2 = new google.visualization.DataTable();
+                        data2.addColumn('string', 'VMS');
+                        data2.addColumn('number', 'Used Memory');
+                        data2.addRows(hyper.VMS.length);
+                        for  (var i = 0; i < hyper.VMS.length; i++){
+                            for(var vm_name in hyper.VMS[i]){
+                                if( hyper.VMS[i][vm_name]['Project'] == selected_value){
+                                    data2.setCell(i,0,vm_name);
+                                    data2.setCell(i,1,hyper.VMS[i][vm_name]['used_memory']);
+                                }
+                            }
+                        }
+
+                        formatter.format(data2, 1);
+						var chart2 = new google.visualization.PieChart(document.getElementById('Memory_user_div'));
+						chart2.draw(data2, options2);
+					}
+				 }
+		     }
+		   }
+		}
+      }
+
+	function draw_vcpu_Chart() {
+        var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Hypervisor');
+        data.addColumn('number', 'Used CPU');
+        data.addRows(hyper.hypervisor.length);
+
+            for  (var i = 0; i < hyper.hypervisor.length; i++){
+                for(var hyper_name in hyper.hypervisor[i]){
+                if(hyper.hypervisor.length >1){
+                    data.setCell(i,0,hyper_name);
+                    data.setCell(i,1,hyper.hypervisor[i][hyper_name]['used_cpu']);
+                }
+                else{
+                    data.addRows(2);
+                    data.setCell(0,0,'Free');
+                    data.setCell(0,1,hyper.hypervisor[0][hyper_name]['total_cpu'] - hyper.hypervisor[0][hyper_name]['used_cpu']);
+                    data.setCell(1,0,"Used");
+                    data.setCell(1,1,hyper.hypervisor[0][hyper_name]['used_cpu']);
+                }
+                }
+            }
+         var formatter = new google.visualization.NumberFormat({
+            fractionDigits:2,
+            suffix: ' vCPU'
+          });
+
+        formatter.format(data, 1);
+
+        // Set options for Memory pie chart.
+        var options = {title:'Hypervisor vCPU', is3D:true, pieSliceText:'value', width:350};
+
+        // Instantiate and draw the chart for Memory.
+       var chart = new google.visualization.PieChart(document.getElementById('vCPU_hyp_div'));
+       chart.draw(data, options);
+
+	   google.visualization.events.addListener(chart, 'select', selectHandler);
+
+	   function selectHandler() {
+	    var data1 = new google.visualization.DataTable();
+        data1.addColumn('string', 'Projects');
+        data1.addColumn('number', 'Used CPU');
+        data1.addRows(hyper.Projects.length);
+        for  (var i = 0; i < hyper.Projects.length; i++){
+            for(var project_name in hyper.Projects[i]){
+                data1.setCell(i,0,project_name);
+                data1.setCell(i,1,hyper.Projects[i][project_name]['used_cpu']);
+            }
+        }
+        formatter.format(data1, 1);
+         var options1 = {title:'Project vCPU', is3D:true, pieSliceText:'value', width:350};
+		 var selection = chart.getSelection();
+		 for (var i = 0; i < selection.length; i++) {
+            var item = selection[i];
+			value_selected = data.getValue(item.row, 0);
+			if (value_selected == 'Used'){
+				var chart1 = new google.visualization.PieChart(document.getElementById('vCPU_project_div'));
+				chart1.draw(data1, options1);
+				google.visualization.events.addListener(chart1, 'select', selectHandler1);
+				 function selectHandler1(e) {
+				    var options2 = {title:'VM vCPU', is3D:true, pieSliceText:'value', width:350};
+                    var selected_value = "";
+					var selection1 = chart1.getSelection();
+					for (var j = 0; j < selection1.length; j++) {
+						var selected_item = selection1[j];
+						selected_value = data1.getValue(selected_item.row, 0);
+
+						var data2 = new google.visualization.DataTable();
+                        data2.addColumn('string', 'VMS');
+                        data2.addColumn('number', 'Used CPU');
+                        data2.addRows(hyper.VMS.length);
+                        for  (var i = 0; i < hyper.VMS.length; i++){
+                            for(var vm_name in hyper.VMS[i]){
+                                if( hyper.VMS[i][vm_name]['Project'] == selected_value){
+                                    data2.setCell(i,0,vm_name);
+                                    data2.setCell(i,1,hyper.VMS[i][vm_name]['used_cpu']);
+                                }
+                            }
+                        }
+                        formatter.format(data2, 1);
+						var chart2 = new google.visualization.PieChart(document.getElementById('vCPU_user_div'));
+						chart2.draw(data2, options2);
+					}
+				 }
+		     }
+		  }
+		}
+      }
+
+
+
+	function draw_disk_Chart() {
+
+	   var data = new google.visualization.DataTable();
+        data.addColumn('string', 'Hypervisor');
+        data.addColumn('number', 'Used Disk');
+        data.addRows(hyper.hypervisor.length);
+        for  (var i = 0; i < hyper.hypervisor.length; i++){
+                for(var hyper_name in hyper.hypervisor[i]){
+                if(hyper.hypervisor.length >1){
+                    data.setCell(i,0,hyper_name);
+                    data.setCell(i,1,hyper.hypervisor[i][hyper_name]['used_disk']);
+                }
+                else{
+                    data.addRows(2);
+                    data.setCell(0,0,'Free');
+                    data.setCell(0,1,hyper.hypervisor[0][hyper_name]['total_disk'] - hyper.hypervisor[0][hyper_name]['used_disk']);
+                    data.setCell(1,0,"Used");
+                    data.setCell(1,1,hyper.hypervisor[0][hyper_name]['used_disk']);
+                }
+                }
+            }
+         var formatter = new google.visualization.NumberFormat({
+            fractionDigits:2,
+            suffix: ' GB'
+          });
+
+        formatter.format(data, 1);
+        // Set options for Disk pie chart.
+        var options = {title:'Hypervisor Disk', is3D:true, pieSliceText:'value', width:350};
+
+        // Instantiate and draw the chart for Memory.
+       var chart = new google.visualization.PieChart(document.getElementById('Disk_hyp_div'));
+       chart.draw(data, options);
+
+	   google.visualization.events.addListener(chart, 'select', selectHandler);
+
+	   function selectHandler() {
+	    var data1 = new google.visualization.DataTable();
+        data1.addColumn('string', 'Projects');
+        data1.addColumn('number', 'Used CPU');
+        data1.addRows(hyper.Projects.length);
+        for  (var i = 0; i < hyper.Projects.length; i++){
+            for(var project_name in hyper.Projects[i]){
+                data1.setCell(i,0,project_name);
+                data1.setCell(i,1,hyper.Projects[i][project_name]['used_cpu']);
+            }
+        }
+        formatter.format(data1, 1);
+         var options1 = {title:'Project Disk', is3D:true, pieSliceText:'value', width:350};
+		 var selection = chart.getSelection();
+		 for (var i = 0; i < selection.length; i++) {
+            var item = selection[i];
+			value_selected = data.getValue(item.row, 0);
+			if (value_selected == 'Used'){
+				var chart1 = new google.visualization.PieChart(document.getElementById('Disk_project_div'));
+				chart1.draw(data1, options1);
+				google.visualization.events.addListener(chart1, 'select', selectHandler1);
+				 function selectHandler1(e) {
+				    var options2 = {title:'VM Disk', is3D:true, pieSliceText:'value', width:350};
+                    var selected_value = "";
+					var selection1 = chart1.getSelection();
+					for (var j = 0; j < selection1.length; j++) {
+						var selected_item = selection1[j];
+						selected_value = data1.getValue(selected_item.row, 0);
+
+						var data2 = new google.visualization.DataTable();
+                        data2.addColumn('string', 'VMS');
+                        data2.addColumn('number', 'Used Disk');
+                        data2.addRows(hyper.VMS.length);
+                        for  (var i = 0; i < hyper.VMS.length; i++){
+                            for(var vm_name in hyper.VMS[i]){
+                                if( hyper.VMS[i][vm_name]['Project'] == selected_value){
+                                    data2.setCell(i,0,vm_name);
+                                    data2.setCell(i,1,hyper.VMS[i][vm_name]['used_disk']);
+                                }
+                            }
+                        }
+                        formatter.format(data2, 1);
+						var chart2 = new google.visualization.PieChart(document.getElementById('Disk_user_div'));
+						chart2.draw(data2, options2);
+					}
+				 }
+			 }
+		   }
+		}
+      }
+
+
+    </script>
+</head>
+
+<body>
+<!--Div that will hold the pie chart-->
+<table class="columns">
+    <tr>
+        <td style="width:300px; height:200px">
+            <div id="vCPU_hyp_div"></div>
+        </td>
+        <td style="width:300px; height:200px">
+            <div id="Memory_hyp_div"></div>
+        </td>
+        <td style="width:300px; height:200px">
+            <div id="Disk_hyp_div"></div>
+        </td>
+    </tr>
+    <tr>
+        <td style="width:300px; height:200px">
+            <div id="vCPU_project_div"></div>
+        </td>
+        <td style="width:300px; height:200px">
+            <div id="Memory_project_div"></div>
+        </td>
+        <td style="width:300px; height:200px">
+            <div id="Disk_project_div"></div>
+        </td>
+    </tr>
+    <tr>
+        <td style="width:300px; height:200px">
+            <div id="vCPU_user_div"></div>
+        </td>
+        <td style="width:300px; height:200px">
+            <div id="Memory_user_div"></div>
+        </td>
+        <td style="width:300px; height:200px">
+            <div id="Disk_user_div"></div>
+        </td>
+
+    </tr>
+</table>
+
+</body>
+</html>
+{% endblock %}

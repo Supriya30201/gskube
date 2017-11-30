@@ -10,6 +10,7 @@ from exception.sol_exception import SOLException
 from core import services
 from tabulate import tabulate
 import sol_email
+import reporting
 
 logger = logging.getLogger(__name__)
 
@@ -493,3 +494,7 @@ def hypervisor_user_management(request, username=None, message=None, error_messa
     return render(request, constants.HYPERVISOR_USER_MGMT_TEMPLATE,
                   {'mappings': db_service.get_user_hypervisor_mapping(username), constants.USERNAME: username,
                    constants.MESSAGE: message, constants.ERROR_MESSAGE: error_message})
+
+
+def get_report(request):
+    return render(request, constants.REPORT_TEMPLATE, {'reports_dict': reporting.generate_report()})

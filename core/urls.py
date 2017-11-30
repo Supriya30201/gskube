@@ -1,6 +1,8 @@
 from django.conf.urls import url
 from django.conf.urls import include
 from . import views
+from apscheduler.schedulers.background import BackgroundScheduler
+import reporting
 
 
 urlpatterns = [
@@ -42,4 +44,10 @@ urlpatterns = [
         url('^$', views.hypervisor_user_management, name="create_hypervisor_user"),
         url('(P<host>[\w\d.-_]+)/(?P<username>[\w\d-]+)/$', views.hypervisor_user_management, name="create_hypervisor_user"),
     ])),
+    url(r'^generate_report/$', views.get_report, name="generate_report"),
 ]
+
+scheduler = BackgroundScheduler()
+scheduler.add_job(reporting.load_report_data, 'interval', minutes=10)
+scheduler.start()
+

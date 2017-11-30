@@ -62,3 +62,31 @@ def get_start_time():
     else:
         start_date = datetime.utcnow() - timedelta(days=10000)
     return start_date
+
+
+def get_latest_time():
+    latest_time = sol_db.HypervisorReport.objects.latest('time')
+    if latest_time:
+        return latest_time.time
+    return None
+
+
+def get_hypervisor_report(time):
+    hypervisor_report = sol_db.HypervisorReport.objects.filter(time=time)
+    if hypervisor_report:
+        return hypervisor_report.all()
+    return []
+
+
+def get_project_report(time):
+    project_report = sol_db.ProjectReport.objects.filter(time=time)
+    if project_report:
+        return project_report.all()
+    return []
+
+
+def get_vm_report(time):
+    vm_report = sol_db.VMReport.objects.filter(time=time)
+    if vm_report:
+        return vm_report.all()
+    return []
