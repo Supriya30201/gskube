@@ -290,6 +290,7 @@
 
                             {% for hypervisor in request.session.user_hypervisors %}
                             <option class="optionStyle" value="{{ hypervisor.host }}"
+                                    name="{% if hypervisor.username %}{{ hypervisor.username }}{% endif %}"
                                     {% if hypervisor.host == request.session.selected_hypervisor_obj.host %}
                                     selected
                                     {% endif %}
@@ -509,6 +510,11 @@
         $("#current_hypervisor").on("change", function () {
             $modal = $('#myModal');
             if ($(this).val() !== '--select--') {
+                if($("#current_hypervisor option:selected").attr('name') != ''){
+                    $('#c_hypervisor').val($('#current_hypervisor').val());
+                    document.hypervisor_login.submit();
+                    return;
+                }
                 $modal.modal('show');
             } else {
                 switch_common('{% url 'load_hypervisor_projects'%}', 'hypervisor')

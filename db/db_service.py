@@ -220,10 +220,13 @@ def get_hypervisor_of_user(username):
     db_user_hypervisors = db_user_hypervisors.all()
     for db_user_hypervisor in db_user_hypervisors:
         if not db_user_hypervisor.hypervisor.deleted:
+            domain, username, password = get_user_creds(db_user_hypervisor.hypervisor.host, username)
             user_hypervisors.append({constants.TYPE: db_user_hypervisor.hypervisor.type,
                                      constants.PROTOCOL: db_user_hypervisor.hypervisor.protocol,
                                      constants.HOST: db_user_hypervisor.hypervisor.host,
-                                     constants.PORT: db_user_hypervisor.hypervisor.port})
+                                     constants.PORT: db_user_hypervisor.hypervisor.port,
+                                     constants.DOMAIN: domain, constants.USERNAME: username,
+                                     constants.PASSWORD: password})
     return user_hypervisors
 
 

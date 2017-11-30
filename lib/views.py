@@ -14,10 +14,10 @@ def load_hypervisor_projects(request, hypervisor=None, domain=None, username=Non
                                           constants.SELECTED_HYPERVISOR_OBJ])
         return render(request, constants.DASHBOARD_TEMPLATE)
     selected_hypervisor = get_selected_hypervisor(request, host)
-    selected_hypervisor[constants.DOMAIN] = domain if domain else request.POST['domain']
-    selected_hypervisor[constants.USERNAME] = username if username else request.POST['username']
-    selected_hypervisor[constants.PASSWORD] = password if password else request.POST['password']
-    print selected_hypervisor
+    if not selected_hypervisor[constants.DOMAIN]:
+        selected_hypervisor[constants.DOMAIN] = domain if domain else request.POST['domain']
+        selected_hypervisor[constants.USERNAME] = username if username else request.POST['username']
+        selected_hypervisor[constants.PASSWORD] = password if password else request.POST['password']
     error_message = None
     try:
         adapter = factory.get_adapter(selected_hypervisor[constants.TYPE], selected_hypervisor)
