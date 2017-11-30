@@ -370,7 +370,7 @@ def load_projects(request, host=None):
                                                         constants.DOMAIN: request.POST[constants.DOMAIN],
                                                         constants.USERNAME: request.POST[constants.USERNAME],
                                                         constants.PASSWORD: request.POST[constants.PASSWORD]})
-        token, _ = adapter.generate_admin_auth()
+        token, _, _ = adapter.generate_admin_auth()
         request.session[constants.DOMAIN] = request.POST[constants.DOMAIN]
         request.session[constants.SELECTED_HYPERVISOR_OBJ] = {constants.PROTOCOL: hypervisor.protocol,
                                                               constants.HOST: hypervisor.host,

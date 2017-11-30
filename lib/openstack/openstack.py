@@ -32,7 +32,7 @@ class Openstack(sol_adapter.SolAadapter):
 
     def create_sol_user(self):
         try:
-            _, project_id = self.generate_admin_auth()
+            _, project_id, _ = self.generate_admin_auth()
             roles = []
             for role in self.get_roles():
                 roles.append(role[constants.ROLE_ID])
@@ -49,21 +49,16 @@ class Openstack(sol_adapter.SolAadapter):
 
     def generate_admin_auth(self):
         projects, unscoped_auth = self.get_projects_using_unscoped_login()
-        project_id = None
-        token = None
         for project in projects:
             scoped_auth = keystone.scoped_login_v3(self.protocol, self.host, self.port, unscoped_auth['token'],
                                                    project['id'])
             if keystone.is_admin(scoped_auth['client'], unscoped_auth['user_id'], project['id']):
                 self.keystone_client = scoped_auth['client']
-                project_id = project['id']
-                token = scoped_auth['token']
                 break
-
-        if not project_id:
+        else:
             raise OpenstackException(message="Unable to find admin role for given user.")
 
-        return token, project_id
+        return scoped_auth['token'], project['id'], scoped_auth['endpoint_urls']
 
     def get_projects_using_unscoped_login(self):
         unscoped_auth = keystone.unscoped_login(self.protocol, self.host, self.port, self.username, self.password)

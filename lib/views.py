@@ -46,6 +46,15 @@ def mark_project_selection(request, project_id=None):
             request.session[constants.TOKEN] = token
             hypervisor[constants.TOKEN] = token
             request.session[constants.SELECTED_HYPERVISOR_OBJ] = hypervisor
+            if not endpoint_urls:
+                domain, username, password = db_service.get_user_creds(hypervisor[constants.HOST], constants.HYPERVISOR_SOLUSER_NAME)
+                sol_adapter = factory.get_adapter(hypervisor[constants.TYPE],
+                                                  {constants.PROTOCOL: hypervisor[constants.PROTOCOL],
+                                                   constants.HOST: hypervisor[constants.HOST],
+                                                   constants.PORT: hypervisor[constants.PORT],
+                                                   constants.DOMAIN: domain, constants.USERNAME: username,
+                                                   constants.PASSWORD: password})
+                _, _, endpoint_urls = sol_adapter.generate_admin_auth()
             request.session[constants.ENDPOINT_URLS] = endpoint_urls
             if is_admin:
                 request.session[constants.IS_ADMIN] = True
@@ -349,7 +358,7 @@ def instance_request(request, load_instance=False, message=None, error_message=N
                                      request.session[constants.SELECTED_PROJECT], request.session[constants.USER],
                                      request.POST['server_name'], request.POST['image'], request.POST['network'],
                                      request.POST['flavor'], request.POST['date'])
-    return render(request, constants.INSTANCES_TEMPLATE, {constants.MESSAGE: "Instance Requested Successfully."})
+    return manage_instances(request, message="Instance requested successfully.")
 
 
 def hypervisor_preference(request, host=None, remove=False):
