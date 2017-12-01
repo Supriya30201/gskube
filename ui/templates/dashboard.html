@@ -45,7 +45,7 @@
         </div>
         {% endif %}
 
-        {% if request.session.is_admin %}
+        {% if request.session.is_admin and request.session.selected_project %}
         <div class="panel-body">
             <a href="{% url 'instance_request'%}">
                 <span class="glyphicon glyphicon-cog"> </span> Server Requests

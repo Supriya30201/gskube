@@ -86,7 +86,6 @@ def load_tenant_wise_report(adapter, timestamp):
                 report_service.create_project(adapter.host, tenant_usage.tenant_id, project['project_name'])
             report_service.save_project_stats(adapter.host, timestamp, tenant_usage.tenant_id, project_report)
 
-
     except Exception as e:
         logger.error(e.message)
         logger.error(e)
