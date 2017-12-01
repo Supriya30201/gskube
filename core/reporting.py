@@ -66,6 +66,9 @@ def load_tenant_wise_report(adapter, timestamp):
                 constants.USED_MEMORY: tenant_usage.total_memory_mb_usage / tenant_usage.total_hours,
                 constants.TOTAL_HOURS: tenant_usage.total_hours
             }
+            if not report_service.project_exist(tenant_usage.tenant_id):
+                project = adapter.get_project(tenant_usage.tenant_id)
+                report_service.create_project(adapter.host, tenant_usage.tenant_id, project['project_name'])
             report_service.save_project_stats(adapter.host, timestamp, tenant_usage.tenant_id, project_report)
 
             for server_usage in tenant_usage.server_usages:
@@ -90,6 +93,7 @@ def load_report_data():
     timestamp = datetime.utcnow()
     for hypervisor in hypervisors:
         adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+        adapter.generate_admin_auth()
         load_hypervisors_stats(adapter, timestamp)
         load_tenant_wise_report(adapter, timestamp)
 
@@ -121,12 +125,15 @@ def generate_report():
     vms_report = report_service.get_vm_report(time)
     reports_dict["VMS"] = []
     for vm_report in vms_report:
+        if vm_report.instance:
+            key = str(vm_report.instance.instance_name)
+            project = str(vm_report.instance.project.name)
+            user = str(vm_report.instance.user.username)
+        else:
+            key, project, user = "-", "-", "-"
         reports_dict["VMS"].append(
-            {str(vm_report.instance.instance_name): {"total_cpu": vm_report.total_cpu, "used_cpu": vm_report.used_cpu,
-                                                     "total_memory": vm_report.total_memory,
-                                                     "used_memory": vm_report.used_memory,
-                                                     "total_disk": vm_report.total_disk,
-                                                     "used_disk": vm_report.used_disk,
-                                                     "Project": str(vm_report.instance.project.name),
-                                                     "user": str(vm_report.instance.user.username)}})
+            {key: {"total_cpu": vm_report.total_cpu, "used_cpu": vm_report.used_cpu,
+                   "total_memory": vm_report.total_memory, "used_memory": vm_report.used_memory,
+                   "total_disk": vm_report.total_disk, "used_disk": vm_report.used_disk, "Project": project,
+                   "user": user}})
     return reports_dict

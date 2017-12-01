@@ -68,6 +68,22 @@ def get_start_time():
     return start_date
 
 
+def project_exist(project_id):
+    project = sol_db.Project.objects.filter(project_id=project_id)
+    if project:
+        return True
+    return False
+
+
+def create_project(hypervisor, project_id, project_name):
+    project = sol_db.Project()
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
+    project.hypervisor = db_hypervisor
+    project.project_id = project_id
+    project.name = project_name
+    project.save()
+
+
 def get_latest_time():
     latest_time = sol_db.HypervisorReport.objects.latest('time')
     if latest_time:

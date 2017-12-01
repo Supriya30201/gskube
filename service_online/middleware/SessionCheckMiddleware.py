@@ -16,5 +16,5 @@ class SessionCheckMiddleware(object):
             if request.path == '/':
                 return views.load_dashboard(request)
 
-        elif request.path != '/':
+        elif request.path != '/' and request.path != '/logout':
             return views.logout(request, error_message="Please login again.")
