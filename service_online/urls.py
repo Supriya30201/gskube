@@ -16,6 +16,10 @@ Including another URLconf
 from django.conf.urls import url
 from django.conf.urls import include
 from core import views as core_views
+from core import reporting
+from core import expiry_reminder
+from core import vm_deletion
+import socket
 
 urlpatterns = [
     # Login URL
@@ -25,3 +29,17 @@ urlpatterns = [
     url(r'^django_admin/', include('core.urls')),
     url(r'^hypervisor_admin/', include('lib.urls')),
 ]
+
+try:
+    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    sock.bind(("127.0.0.1", 47200))
+except socket.error:
+    print "!!!scheduler already started, DO NOTHING"
+else:
+    print "Scheduling all jobs."
+    from apscheduler.schedulers.background import BackgroundScheduler
+    scheduler = BackgroundScheduler()
+    scheduler.add_job(reporting.load_report_data, 'interval', minutes=59)
+    scheduler.add_job(expiry_reminder.reminder_expiry, 'cron', day="*", hour=06, minute=00)
+    scheduler.add_job(vm_deletion.auto_vm_deletion, 'cron', day="*", hour=00, minute=01)
+    scheduler.start()

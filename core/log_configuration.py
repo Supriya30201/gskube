@@ -1,7 +1,7 @@
 import os
 
-LOG_FILE_DIR = "SOL_Logs/"
-LIST_OF_APPS = ['core', 'db', 'lib', 'service_online', 'ui']
+LOG_FILE_DIR = "logs/"
+LIST_OF_APPS = ['core', 'db', 'lib', 'service_online', 'ui', 'exception']
 
 
 if not os.path.exists(LOG_FILE_DIR):
@@ -26,7 +26,7 @@ LOGGING = {
         'file': {
             'level': 'DEBUG',
             'class': 'logging.handlers.RotatingFileHandler',
-            'filename': LOG_FILE_DIR+'/debug.log',
+            'filename': LOG_FILE_DIR+'/service_online.log',
             'maxBytes': 1024*1024*10,  # 10MB
             'backupCount': 10,
             'formatter': 'simple',
@@ -46,7 +46,7 @@ other_loggers = {}
 
 for app in LIST_OF_APPS:
     handler = SIMPLE_FILE_HANDLER.copy()
-    handler['filename'] = LOG_FILE_DIR + '/service_online_logs.log' #Comment this line and uncomment the next line
+    handler['filename'] = LOG_FILE_DIR + '/service_online.log' #Comment this line and uncomment the next line
     other_handlers['app_%s' % app] = handler
     other_loggers[app] = {
         'handlers': ['app_%s' % app],

@@ -11,6 +11,7 @@ https://docs.djangoproject.com/en/1.10/ref/settings/
 """
 
 import os
+from core.log_configuration import LOGGING
 
 # Build paths inside the project like this: os.path.join(BASE_DIR, ...)
 BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -59,6 +60,8 @@ MIDDLEWARE_CLASSES = [
 ]
 
 ROOT_URLCONF = 'service_online.urls'
+
+LOGGING = LOGGING
 
 TEMPLATES = [
     {

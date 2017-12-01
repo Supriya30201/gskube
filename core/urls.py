@@ -1,8 +1,6 @@
 from django.conf.urls import url
 from django.conf.urls import include
 from . import views
-from apscheduler.schedulers.background import BackgroundScheduler
-import reporting
 
 
 urlpatterns = [
@@ -46,8 +44,3 @@ urlpatterns = [
     ])),
     url(r'^generate_report/$', views.get_report, name="generate_report"),
 ]
-
-scheduler = BackgroundScheduler()
-scheduler.add_job(reporting.load_report_data, 'interval', minutes=10)
-scheduler.start()
-
