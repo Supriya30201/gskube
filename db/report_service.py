@@ -41,14 +41,17 @@ def save_project_stats(hypervisor, timestamp, project_id, project_stats):
     project_report.save()
 
 
-def save_vm_stats(instance_id, timestamp, vm_stats):
+def save_vm_stats(instance_id, timestamp, hypervisor, project_id, vm_stats):
     db_instance = sol_db.Instance.objects.filter(instance_id=instance_id)
+    db_hypervisor = sol_db.Hypervisor.objects.get(host=hypervisor)
+    db_project = sol_db.Project.objects.filter(hypervisor=db_hypervisor.id, project_id=project_id).first()
     if db_instance:
         db_instance = db_instance.first()
     else:
         db_instance = None
     vm_report = sol_db.VMReport()
     vm_report.instance = db_instance
+    vm_report.project = db_project
     vm_report.time = timestamp
     vm_report.total_cpu = vm_stats[constants.TOTAL_CPU]
     vm_report.total_memory = vm_stats[constants.TOTAL_MEMORY]

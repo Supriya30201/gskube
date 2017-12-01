@@ -121,6 +121,7 @@ class VMReport(models.Model):
     """
     time = models.DateTimeField(default=timezone.now())
     instance = models.ForeignKey(Instance, on_delete=models.DO_NOTHING, null=True)
+    project = models.ForeignKey(Project, on_delete=models.DO_NOTHING, null=True)
     total_hours = models.FloatField()
     total_memory = models.FloatField()
     total_cpu = models.FloatField()

@@ -58,19 +58,7 @@ def load_tenant_wise_report(adapter, timestamp):
         all_tenant_usage = adapter.get_detailed_usage(start_date, end_date)
         for tenant_usage in all_tenant_usage:
             tenant_quota = adapter.get_quota_details(tenant_usage.tenant_id)
-            project_report = {
-                constants.TOTAL_CPU: tenant_quota.cores,
-                constants.TOTAL_MEMORY: tenant_quota.ram,
-                constants.USED_CPU: tenant_usage.total_vcpus_usage / tenant_usage.total_hours,
-                constants.USED_DISK: (tenant_usage.total_local_gb_usage / tenant_usage.total_hours),
-                constants.USED_MEMORY: tenant_usage.total_memory_mb_usage / tenant_usage.total_hours,
-                constants.TOTAL_HOURS: tenant_usage.total_hours
-            }
-            if not report_service.project_exist(tenant_usage.tenant_id):
-                project = adapter.get_project(tenant_usage.tenant_id)
-                report_service.create_project(adapter.host, tenant_usage.tenant_id, project['project_name'])
-            report_service.save_project_stats(adapter.host, timestamp, tenant_usage.tenant_id, project_report)
-
+            total_used_mem, total_used_disk, total_used_cpu = 0, 0, 0
             for server_usage in tenant_usage.server_usages:
                 vm_report = {
                     constants.TOTAL_CPU: server_usage['vcpus'],
@@ -80,7 +68,25 @@ def load_tenant_wise_report(adapter, timestamp):
                     constants.USED_MEMORY: server_usage['memory_mb'],
                     constants.TOTAL_HOURS: server_usage['hours']
                 }
-                report_service.save_vm_stats(server_usage['instance_id'], timestamp, vm_report)
+                total_used_cpu += int(server_usage['vcpus'])
+                total_used_disk += int(server_usage['local_gb'])
+                total_used_mem += int(server_usage['memory_mb'])
+                report_service.save_vm_stats(server_usage['instance_id'], timestamp, adapter.host,
+                                             tenant_usage.tenant_id, vm_report)
+            project_report = {
+                constants.TOTAL_CPU: tenant_quota.cores,
+                constants.TOTAL_MEMORY: tenant_quota.ram,
+                constants.USED_CPU: total_used_cpu,
+                constants.USED_DISK: total_used_disk,
+                constants.USED_MEMORY: total_used_mem,
+                constants.TOTAL_HOURS: tenant_usage.total_hours
+            }
+            if not report_service.project_exist(tenant_usage.tenant_id):
+                project = adapter.get_project(tenant_usage.tenant_id)
+                report_service.create_project(adapter.host, tenant_usage.tenant_id, project['project_name'])
+            report_service.save_project_stats(adapter.host, timestamp, tenant_usage.tenant_id, project_report)
+
+
     except Exception as e:
         logger.error(e.message)
         logger.error(e)
@@ -105,6 +111,8 @@ def generate_report():
     hypervisors_report = report_service.get_hypervisor_report(time)
     reports_dict["hypervisor"] = []
     for hypervisor_report in hypervisors_report:
+        if hypervisor_report.total_cpu < hypervisor_report.used_cpu:
+            hypervisor_report.total_cpu = hypervisor_report.used_cpu
         reports_dict["hypervisor"].append(
             {str(hypervisor_report.name): {"total_cpu": hypervisor_report.total_cpu,
                                            "used_cpu": hypervisor_report.used_cpu,
@@ -127,13 +135,12 @@ def generate_report():
     for vm_report in vms_report:
         if vm_report.instance:
             key = str(vm_report.instance.instance_name)
-            project = str(vm_report.instance.project.name)
             user = str(vm_report.instance.user.username)
         else:
             key, project, user = "-", "-", "-"
         reports_dict["VMS"].append(
             {key: {"total_cpu": vm_report.total_cpu, "used_cpu": vm_report.used_cpu,
                    "total_memory": vm_report.total_memory, "used_memory": vm_report.used_memory,
-                   "total_disk": vm_report.total_disk, "used_disk": vm_report.used_disk, "Project": project,
-                   "user": user}})
+                   "total_disk": vm_report.total_disk, "used_disk": vm_report.used_disk,
+                   "Project": str(vm_report.project.name), "user": user}})
     return reports_dict

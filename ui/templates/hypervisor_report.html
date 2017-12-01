@@ -2,7 +2,6 @@
 {% load static %}
 {% block body %}
 <html>
-<!--{{test|safe}}-->
 <head>
     <style>
 
@@ -13,14 +12,13 @@
                     background-color: #337ab7;
          }
     </style>
-    <!--Load the AJAX API-->
     <script type="text/javascript">
 
     // Load Charts and the corechart package.
       google.charts.load('current', {'packages':['corechart']})
 
     // Data passed from view.py
-      var hyper = {{test|safe}};
+      var hyper = {{reports_dict|safe}};
       if (!hyper.hasOwnProperty("hypervisor")){
         alert("Reports not found");
       }

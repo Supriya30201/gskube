@@ -12,6 +12,7 @@ from tabulate import tabulate
 import sol_email
 import reporting
 from datetime import datetime
+import json
 
 logger = logging.getLogger(__name__)
 
@@ -499,4 +500,5 @@ def hypervisor_user_management(request, username=None, message=None, error_messa
 
 
 def get_report(request):
-    return render(request, constants.REPORT_TEMPLATE, {'reports_dict': reporting.generate_report()})
+    report = reporting.generate_report()
+    return render(request, constants.REPORT_TEMPLATE, {'reports_dict': json.dumps(report)})
