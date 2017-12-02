@@ -183,6 +183,10 @@ class Openstack(sol_adapter.SolAadapter):
         self.load_nova_client()
         return nova.get_detailed_usage(self.nova_client, start_date, end_date)
 
+    def get_tenant_usage(self, tenant_id, start_date, end_date):
+        self.load_nova_client()
+        return nova.get_tenant_usage(self.nova_client, tenant_id, start_date, end_date)
+
     def get_quota_details(self, tenant_id, limited=False):
         self.load_nova_client()
         quotas = nova.get_quota_details(self.nova_client, tenant_id)

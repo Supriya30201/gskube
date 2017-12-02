@@ -7,8 +7,8 @@ LOGGER = logging.getLogger(__name__)
 
 
 def get_nova_connection(protocol, host, port, domain, username, password, project_id):
-    LOGGER.info("Executing get_nova_connection with args : " + protocol + "\t" + host + "\t" + port + "\t" + domain +
-                "\t" + username + "\t" + project_id)
+    LOGGER.info("Executing get_nova_connection with args : " + str(protocol) + "\t" + str(host) + "\t" + str(port) +
+                "\t" + str(domain) + "\t" + str(username) + "\t" + str(project_id))
     try:
         auth_url = protocol + "://" + host + ":" + port + "/v3"
         return client.Client("2", username=username, password=password, project_id=project_id, auth_url=auth_url,
@@ -50,7 +50,7 @@ def list_servers(nova_client, images):
 
 
 def load_server_ips(nova_client, server_id):
-    LOGGER.info("Executing load_server_ips with args : " + server_id)
+    LOGGER.info("Executing load_server_ips with args : " + str(server_id))
     networks = nova_client.servers.ips(server=server_id)
     server_ips = []
     for network in networks.keys():
@@ -77,8 +77,8 @@ def list_flavors(nova_client):
 
 
 def create_server(nova_client, server_name, image_id, flavor_id, network_id):
-    LOGGER.info("Executing create_server with args : " + server_name + "\t" + image_id + "\t" + flavor_id + "\t" +
-                network_id)
+    LOGGER.info("Executing create_server with args : " + str(server_name) + "\t" + str(image_id) + "\t" + str(flavor_id)
+                + "\t" + str(network_id))
     try:
         server = nova_client.servers.create(name=server_name, image=image_id, flavor=flavor_id,
                                             nics=[{'net-id': network_id}])
@@ -88,7 +88,7 @@ def create_server(nova_client, server_name, image_id, flavor_id, network_id):
 
 
 def modify_flavor(nova_client, server_id, flavor_id):
-    LOGGER.info("Executing modify_flavor with args : " + server_id + "\t" + flavor_id)
+    LOGGER.info("Executing modify_flavor with args : " + str(server_id) + "\t" + str(flavor_id))
     try:
         nova_client.servers.resize(server=server_id, flavor=flavor_id)
     except Exception as e:
@@ -96,7 +96,7 @@ def modify_flavor(nova_client, server_id, flavor_id):
 
 
 def load_console(nova_client, server_id):
-    LOGGER.info("Executing load_console with args : " + server_id)
+    LOGGER.info("Executing load_console with args : " + str(server_id))
     try:
         vnc_url_obj = nova_client.servers.get_vnc_console(server=server_id, console_type="novnc")
         return vnc_url_obj['console']['url']
@@ -105,7 +105,7 @@ def load_console(nova_client, server_id):
 
 
 def start_server(nova_client, server_id):
-    LOGGER.info("Executing start_server with args : " + server_id)
+    LOGGER.info("Executing start_server with args : " + str(server_id))
     try:
         return nova_client.servers.start(server=server_id)
     except Exception as e:
@@ -113,7 +113,7 @@ def start_server(nova_client, server_id):
 
 
 def delete_server(nova_client, server_id):
-    LOGGER.info("Executing delete_server with args : " + server_id)
+    LOGGER.info("Executing delete_server with args : " + str(server_id))
     try:
         return nova_client.servers.delete(server=server_id)
     except Exception as e:
@@ -121,7 +121,7 @@ def delete_server(nova_client, server_id):
 
 
 def stop_server(nova_client, server_id):
-    LOGGER.info("Executing stop_server with args : " + server_id)
+    LOGGER.info("Executing stop_server with args : " + str(server_id))
     try:
         return nova_client.servers.stop(server=server_id)
     except Exception as e:
@@ -137,7 +137,7 @@ def hypervisor_list(nova_client):
 
 
 def get_hypervisor(nova_client, hypervisor):
-    LOGGER.info("Executing get_hypervisor with args : " + hypervisor)
+    LOGGER.info("Executing get_hypervisor with args : " + str(hypervisor))
     try:
         return nova_client.hypervisors.get(hypervisor)
     except Exception as e:
@@ -146,7 +146,7 @@ def get_hypervisor(nova_client, hypervisor):
 
 
 def get_detailed_usage(nova_client, start_date, end_date):
-    LOGGER.info("Executing get_detailed_usage with args : " + start_date + "\t" + end_date)
+    LOGGER.info("Executing get_detailed_usage with args : " + str(start_date) + "\t" + str(end_date))
     try:
         return nova_client.usage.list(start=start_date, end=end_date, detailed=True)
     except Exception as e:
@@ -154,8 +154,18 @@ def get_detailed_usage(nova_client, start_date, end_date):
                                  logger=LOGGER)
 
 
+def get_tenant_usage(nova_client, tenant_id, start_date, end_date):
+    LOGGER.info("Executing get_tenant_usage with args : " + str(tenant_id) + "\t" + str(start_date) + "\t" +
+                str(end_date))
+    try:
+        return nova_client.usage.get(tenant_id=tenant_id, start=start_date, end=end_date)
+    except Exception as e:
+        raise OpenstackException(message="Exception while getting usage details : " + e.message, exception=e,
+                                 logger=LOGGER)
+
+
 def get_quota_details(nova_client, tenant_id):
-    LOGGER.info("Executing get_quota_details with args : " + tenant_id)
+    LOGGER.info("Executing get_quota_details with args : " + str(tenant_id))
     try:
         return nova_client.quotas.get(tenant_id=tenant_id)
     except Exception as e:
@@ -164,7 +174,7 @@ def get_quota_details(nova_client, tenant_id):
 
 
 def set_quota_details(nova_client, tenant_id, quotas):
-    LOGGER.info("Executing set_quota_details with args : " + tenant_id + "\t" + quotas)
+    LOGGER.info("Executing set_quota_details with args : " + str(tenant_id) + "\t" + str(quotas))
     try:
         nova_client.quotas.update(tenant_id=tenant_id, cores=quotas[constants.TOTAL_CPU],
                                   fixed_ips=quotas[constants.FIXED_IPS], floating_ips=quotas[constants.FLOATING_IPS],

@@ -13,7 +13,8 @@ LOGGER = logging.getLogger(__name__)
 
 # Unscoped Token using v2
 def unscoped_login(protocol, host, port, username, password):
-    LOGGER.info("Executing unscoped_login with args : " + protocol + "\t" + host + "\t" + port + "\t" + username)
+    LOGGER.info("Executing unscoped_login with args : " + str(protocol) + "\t" + str(host) + "\t" + str(port) + "\t" +
+                str(username))
     try:
         url = protocol + "://" + host + ":" + port + "/v2.0"
         auth = v2.Password(username=username, password=password, auth_url=url)
@@ -29,8 +30,8 @@ def unscoped_login(protocol, host, port, username, password):
 
 # Uses:For User operations(create/delete/list users) and compute operations(create/delete/list/start/stop instance)
 def scoped_login_v3(protocol, host, port, token, project_id):
-    LOGGER.info("Executing scoped_login_v3 with args : " + protocol + "\t" + host + "\t" + port + "\t" + token + "\t" +
-                project_id)
+    LOGGER.info("Executing scoped_login_v3 with args : " + str(protocol) + "\t" + str(host) + "\t" + str(port) + "\t" +
+                str(token) + "\t" + str(project_id))
     try:
         url = protocol + "://" + host + ":" + port + "/v3"
         auth = v3.Token(auth_url=url, token=token, project_id=project_id)
@@ -60,7 +61,8 @@ def scoped_login_v3(protocol, host, port, token, project_id):
 
 
 def get_client(protocol, host, port, token):
-    LOGGER.info("Executing get_client with args : " + protocol + "\t" + host + "\t" + port + "\t" + token)
+    LOGGER.info("Executing get_client with args : " + str(protocol) + "\t" + str(host) + "\t" + str(port) + "\t" +
+                str(token))
     try:
         url = protocol + "://" + host + ":" + port + "/v3"
         connection = v3_client.Client(endpoint=url, token=token)
@@ -72,7 +74,7 @@ def get_client(protocol, host, port, token):
 
 # List projects using v2 unscoped token
 def list_projects(client, v2_api=True):
-    LOGGER.info("Executing list_projects with args : " + v2_api)
+    LOGGER.info("Executing list_projects with args : " + str(v2_api))
     try:
         if v2_api:
             projects_list = client.tenants.list()
@@ -85,7 +87,7 @@ def list_projects(client, v2_api=True):
 
 
 def get_user_roles(client, user_id, project_id):
-    LOGGER.info("Executing get_user_roles with args : " + user_id + "\t" + project_id)
+    LOGGER.info("Executing get_user_roles with args : " + str(user_id) + "\t" + str(project_id))
     try:
         user_role_ids = []
         user_roles = []
@@ -101,7 +103,7 @@ def get_user_roles(client, user_id, project_id):
 
 
 def is_admin(client, user_id, project_id):
-    LOGGER.info("Executing is_admin with args : " + user_id + "\t" + project_id)
+    LOGGER.info("Executing is_admin with args : " + str(user_id) + "\t" + str(project_id))
     users_project_roles, _ = get_user_roles(client, user_id, project_id)
     for role in users_project_roles:
         if "admin" in role.lower():
@@ -110,8 +112,8 @@ def is_admin(client, user_id, project_id):
 
 
 def create_user(client, name, password, email, description, roles=None, project_id=None):
-    LOGGER.info("Executing create_user with args : " + name + "\t" + email + "\t" + description + "\t" + roles + "\t" +
-                project_id)
+    LOGGER.info("Executing create_user with args : " + str(name) + "\t" + str(email) + "\t" + str(description) + "\t" +
+                str(roles) + "\t" + str(project_id))
     try:
         new_user = client.users.create(name=name, description=description, password=password, email=email,
                                        project=project_id)
@@ -124,7 +126,7 @@ def create_user(client, name, password, email, description, roles=None, project_
 
 
 def delete_user(client, user_id):
-    LOGGER.info("Executing assign_roles with args : " + user_id)
+    LOGGER.info("Executing assign_roles with args : " + str(user_id))
     try:
         client.users.delete(user=user_id)
     except Exception as e:
@@ -147,7 +149,7 @@ def get_roles(client):
 
 
 def assign_roles(client, user_id, roles, project_id):
-    LOGGER.info("Executing assign_roles with args : " + user_id + "\t" + roles + "\t" + project_id)
+    LOGGER.info("Executing assign_roles with args : " + str(user_id) + "\t" + str(roles) + "\t" + str(project_id))
     try:
         for role in roles:
             client.roles.grant(role=role, user=user_id, project=project_id)
@@ -157,7 +159,7 @@ def assign_roles(client, user_id, roles, project_id):
 
 
 def revoke_roles(client, user_id, roles, project_id):
-    LOGGER.info("Executing revoke_roles with args : " + user_id + "\t" + roles + "\t" + project_id)
+    LOGGER.info("Executing revoke_roles with args : " + str(user_id) + "\t" + str(roles) + "\t" + str(project_id))
     try:
         for role in roles:
             client.roles.revoke(role=role, user=user_id, project=project_id)
@@ -166,7 +168,7 @@ def revoke_roles(client, user_id, roles, project_id):
 
 
 def get_project(client, project_id):
-    LOGGER.info("Executing get_project with args : " + project_id)
+    LOGGER.info("Executing get_project with args : " + str(project_id))
     try:
         project = client.projects.get(project=project_id)
         return {'project_id': project_id, 'project_name': project.name, 'project_description': project.description,
@@ -187,8 +189,8 @@ def create_project(client, project_name, description, domain=None, project_id=No
     :param project_id:
     :return:
     """
-    LOGGER.info("Executing create_project with args : " + project_name + "\t" + description + "\t" + domain + "\t" +
-                project_id)
+    LOGGER.info("Executing create_project with args : " + str(project_name) + "\t" + str(description) + "\t" +
+                str(domain) + "\t" + str(project_id))
     try:
         if project_id:
             client.projects.update(project=project_id, name=project_name, description=description)
@@ -200,7 +202,7 @@ def create_project(client, project_name, description, domain=None, project_id=No
 
 
 def delete_project(client, project_id):
-    LOGGER.info("Executing delete_project with args : " + project_id)
+    LOGGER.info("Executing delete_project with args : " + str(project_id))
     try:
         client.projects.delete(project=project_id)
     except Exception as e:
@@ -208,7 +210,7 @@ def delete_project(client, project_id):
 
 
 def list_user(client, with_sol_user=False):
-    LOGGER.info("Executing list_user with args : " + with_sol_user)
+    LOGGER.info("Executing list_user with args : " + str(with_sol_user))
     try:
         users = client.users.list()
         user_list = []
@@ -226,7 +228,7 @@ def list_user(client, with_sol_user=False):
 
 
 def list_users_in_project(client, users, project_id):
-    LOGGER.info("Executing list_users_in_project with args : " + users + "\t" + project_id)
+    LOGGER.info("Executing list_users_in_project with args : " + str(users) + "\t" + str(project_id))
     try:
         if not users:
             users = list_user(client, with_sol_user=True)
