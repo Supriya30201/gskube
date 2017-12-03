@@ -1,0 +1,9 @@
+django
+django-bootstrap3
+MySQL-python
+django-bootstrap
+requests
+python-ldap
+python-dateutil
+tabulate
+ipaddress
