@@ -1,6 +1,7 @@
-FROM ubuntu:14.04
-MAINTAINER Sanket Modi "sanket.modi@gslab.com"
-RUN apt-get update && apt-get -y upgrade
-RUN apt-get install -y python
-RUN apt-get install -y git
-RUN git clone http://sanket.modi:@gitlab/sanket.modi/ServiceOnline.git
+FROM service_online_base:latest
+RUN git clone http://@GIT_USERNAME@:@GIT_PASSWORD@@gitlab.gslab.com/sanket.modi/ServiceOnline.git
+RUN cp -r ServiceOnline /var/www/html/
+COPY apache2.conf /tmp/
+RUN cat /tmp/apache2.conf >> /etc/apache2/apache2.conf
+RUN chmod 777 /ServiceOnline/launch.sh
+ENTRYPOINT ["/ServiceOnline/launch.sh"]
