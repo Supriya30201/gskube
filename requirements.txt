@@ -1,4 +1,4 @@
-django
+django==1.11.8
 django-bootstrap3
 MySQL-python
 django-bootstrap
@@ -14,5 +14,6 @@ python-glanceclient
 python-keystoneclient
 APScheduler
 keystoneauth1
-paramiko
+cryptography==1.9
+paramiko==2.2.1
 pywinrm
