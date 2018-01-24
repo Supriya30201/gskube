@@ -7,4 +7,5 @@ COPY certs/sol.crt /etc/ssl/certs/
 COPY certs/sol.key /etc/ssl/certs/
 RUN cat /tmp/apache2.conf >> /etc/apache2/apache2.conf
 RUN chmod 777 /ServiceOnline/launch.sh
+RUN chmod 777 /
 ENTRYPOINT ["/ServiceOnline/launch.sh"]
