@@ -1,6 +1,7 @@
 {% extends "serviceonline_base_template.html" %}
 
 {% block body %}
+<script src="https://code.jquery.com/jquery-1.12.4.min.js"></script>
 
 <form action="" method="post" name="openstack_login" id="openstack_login">
     {% csrf_token %}
@@ -29,8 +30,9 @@
         <table cellpadding="10" cellspacing="10">
             <tr>
                 <td style="padding:5px"><label>Type</label></td>
-                <td style="padding:5px"><select name="hypervisor_type">
-                    <option value="openstack">Openstack</option>
+                <td style="padding:5px" ><select name="hypervisor_type" id="htype" onChange="changetextbox()">
+                    <option id="openstack" value="openstack">Openstack</option>
+                    <option id="vcenter" value="vCenter">vCenter</option>
                 </select></td>
             </tr>
             <tr>
@@ -49,19 +51,19 @@
                                                title="openstack keystonePort" required></td>
             </tr>
             <tr>
-                <td style="padding:5px"><label>Domain</label></td>
+                <td style="padding:5px" id="domainLabel"><label>Domain</label></td>
                 <td style="padding:5px"><input class="form-control required" type="text" name="domain" id="domain"
-                                               placeholder="Domain" title="openstack Domain" required></td>
+                                               placeholder="Domain" title="openstack Domain" ></td>
             </tr>
             <tr>
-                <td style="padding:5px"><label>Username</label></td>
+                <td style="padding:5px" id="usernameLabel"><label>Username</label></td>
                 <td style="padding:5px"><input class="form-control required" type="text" name="username" id="username"
-                                               title="openstack admin user" placeholder="Username" required></td>
+                                               title="openstack admin user" placeholder="Username" ></td>
             </tr>
             <tr>
-                <td style="padding:5px"><label>Password</label></td>
+                <td style="padding:5px" id="passwordLabel"><label>Password</label></td>
                 <td style="padding:5px"><input class="form-control required" placeholder="Password" name="password"
-                                               id="password" type="password" required></td>
+                                               id="password" type="password" ></td>
             </tr>
 
 
@@ -75,4 +77,28 @@
     </div>
 </form>
 
+<script type="text/javascript">
+function changetextbox()
+{
+
+    if (document.getElementById("htype").value === "vCenter") {
+        console.log(document.getElementById("htype").value);
+        $("#domain").prop( "disabled", true );
+
+        $("#username").prop( "disabled", true );
+        $("#password").prop( "disabled", true );
+
+    } else {
+        $("#domain").prop( "disabled", false );
+        $("#domainLabel").prop( "disabled", false );
+        $("#username").prop( "disabled", false );
+        $("#usernameLabel").prop( "disabled", false );
+        $("#password").prop( "disabled", false );
+        $("#passwordLabel").prop( "disabled", false );
+    }
+}
+</script>
+
 {% endblock %}
+
+

@@ -71,5 +71,25 @@
     </div>
 </div>
 </body>
+<script type="text/javascript">
+function changetextbox()
+{
 
+    if (document.getElementById("htype").value === "vCenter") {
+        console.log(document.getElementById("htype").value);
+        $("#domain").prop( "disabled", true );
+
+        $("#username").prop( "disabled", true );
+        $("#password").prop( "disabled", true );
+
+    } else {
+        $("#domain").prop( "disabled", false );
+        $("#domainLabel").prop( "disabled", false );
+        $("#username").prop( "disabled", false );
+        $("#usernameLabel").prop( "disabled", false );
+        $("#password").prop( "disabled", false );
+        $("#passwordLabel").prop( "disabled", false );
+    }
+}
+</script>
 </html>

@@ -1,7 +1,7 @@
 from db import db_service
 import datetime as datetime_obj
 from datetime import datetime
-import sol_email
+import core.sol_email as sol_email
 import logging
 from tabulate import tabulate
 

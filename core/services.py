@@ -33,12 +33,13 @@ def encode(string_to_encode):
     :param string_to_encode:
     :return:
     """
-    enc = []
+    """enc = []
     for i in range(len(string_to_encode)):
         key_c = key[i % len(key)]
         enc_c = chr((ord(string_to_encode[i]) + ord(key_c)) % 256)
         enc.append(enc_c)
-    return base64.urlsafe_b64encode("".join(enc))
+    return base64.urlsafe_b64encode("".join(enc).encode(encoding="utf-8"))"""
+    return base64.urlsafe_b64encode("".join(string_to_encode).encode(encoding="utf-8"))
 
 
 def decode(string_to_decode):
@@ -47,14 +48,15 @@ def decode(string_to_decode):
     :param string_to_decode:
     :return:
     """
-    string_to_decode = str(string_to_decode)
     dec = []
     cipher = base64.urlsafe_b64decode(string_to_decode)
-    for i in range(len(cipher)):
+    cipher = str(cipher, 'utf-8')
+    """for i in range(len(cipher)):
         key_c = key[i % len(key)]
         dec_c = chr((256 + ord(cipher[i]) - ord(key_c)) % 256)
         dec.append(dec_c)
-    return "".join(dec)
+    return "".join(dec)"""
+    return "".join(cipher)
 
 
 def generate_openvpn_certificate(openvpn_conf, username):

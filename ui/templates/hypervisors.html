@@ -243,9 +243,11 @@ $(document).ready( function() {
                 <td>{{ hypervisor.protocol }}</td>
 
                 <td>
-                    <select name="options" onchange="redirect_to_option(this, '{{hypervisor.id}}')">
+                    <select name="options" onchange="redirect_to_option(this, '{{hypervisor.id}}', '{{hypervisor.type}}')">
                         <option value="--select--">--select--</option>
+                        {% if hypervisor.type == "openstack" %}
                         <option value="{% url 'load_hypervisor_user' hypervisor_id=hypervisor.id%}">Users</option>
+                        {% endif %}
                         <option value="">Delete</option>
                     </select>
                 </td>
@@ -267,14 +269,17 @@ $(document).ready( function() {
                     <form action="{% url 'hypervisor_management'%}" method="post" name="delete_hypervisor">
                         {% csrf_token %}
                         <input type="hidden" name="hypervisor_id" value="" />
+
                         <div class="modal-body" align="center">
                             <table cellpadding="10" cellspacing="10">
+                                {% if hypervisor.type == "openstack" %}
                                 <tr>
                                     <td style="padding:10px">
                                         <input class="form-control required" placeholder="Domain" name="domain"
                                                required>
                                     </td>
                                 </tr>
+                                {% endif %}
                                 <tr>
                                     <td style="padding:10px">
                                         <input class="form-control required" placeholder="Username"

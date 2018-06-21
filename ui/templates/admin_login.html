@@ -39,10 +39,11 @@
 
 <div>
     <form name="login_form" class="form-auth-small"
-          action="{% if redirect %}{{ redirect }}{% else %}{% url 'load_projects' %}{%endif%}"
+          action="{% if domain %}{% url 'load_projects' %}{% else %}{% url 'load_hosts' %}{% endif %}"
           method="POST" onsubmit="return check_password()">
         {% csrf_token %}
         <table width="300px" class="table table-hover" align="center">
+            {% if domain %}
             <tr>
                 <td>
                     Domain
@@ -53,6 +54,17 @@
                 </td>
                  <td></td>
             </tr>
+            {% else %}
+            <tr>
+                <td>
+                    Host
+                </td>
+                <td>
+                    <input class="form-control form-controlcss" type="text" id="host" name="host" value="{{request.session.selected_hypervisor}}" >
+                </td>
+                 <td></td>
+            </tr>
+            {% endif %}
             <tr>
                 <td>
                     Username

@@ -34,12 +34,12 @@ try:
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.bind(("127.0.0.1", 47200))
 except socket.error:
-    print "!!!scheduler already started, DO NOTHING"
+    print("!!!scheduler already started, DO NOTHING")
 else:
-    print "Scheduling all jobs."
+    print("Scheduling all jobs.")
     from apscheduler.schedulers.background import BackgroundScheduler
     scheduler = BackgroundScheduler()
     scheduler.add_job(reporting.load_report_data, 'interval', minutes=59)
-    scheduler.add_job(expiry_reminder.reminder_expiry, 'cron', day="*", hour=06, minute=00)
-    scheduler.add_job(vm_deletion.auto_vm_deletion, 'cron', day="*", hour=00, minute=01)
+    scheduler.add_job(expiry_reminder.reminder_expiry, 'cron', day="*", hour=6, minute=0)
+    scheduler.add_job(vm_deletion.auto_vm_deletion, 'cron', day="*", hour=0, minute=1)
     scheduler.start()

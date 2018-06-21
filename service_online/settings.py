@@ -9,12 +9,8 @@ https://docs.djangoproject.com/en/1.10/topics/settings/
 For the full list of settings and their values, see
 https://docs.djangoproject.com/en/1.10/ref/settings/
 """
-
 import os
 from core.log_configuration import LOGGING
-
-# Build paths inside the project like this: os.path.join(BASE_DIR, ...)
-BASE_DIR = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 
 
 # Quick-start development settings - unsuitable for production
@@ -45,7 +41,9 @@ INSTALLED_APPS = [
     'lib.active_directory',
     'lib.adapter',
     'lib.openstack',
-    'exception'
+    'lib.vcenter',
+    'exception',
+    'reset_migrations'
 ]
 
 MIDDLEWARE_CLASSES = [
@@ -92,6 +90,8 @@ DATABASES = {
         'HOST': 'localhost',
         'USER': 'root',
         'PASSWORD': 'root',
+        'PORT': '3306'
+
     }
 }
 

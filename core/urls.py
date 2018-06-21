@@ -21,6 +21,8 @@ urlpatterns = [
         url(r'^$', views.hypervisor_management, name='hypervisor_management'),
     ])),
     url(r'^create_hypervisor/$', views.create_hypervisor, name="create_hypervisor"),
+    url(r'^load_hosts/$', views.load_hosts, name="load_hosts"),
+
     # url for getting list of user for any hypervisor, adding and removing user from hypervisor
     url(r'^assign_hypervisor/', include([
         url(r'^$', views.assign_hypervisor, name="add_hypervisor_user"),

@@ -9,10 +9,11 @@ import lib
 from exception.sol_exception import SOLException
 from core import services
 from tabulate import tabulate
-import sol_email
-import reporting
+import core.sol_email as sol_email
+import core.reporting as reporting
 from datetime import datetime
 import json
+from pyVim import connect
 
 logger = logging.getLogger(__name__)
 
@@ -81,7 +82,7 @@ def logout(request, error_message=None):
     :param request:
     :return:
     """
-    for key in request.session.keys():
+    for key in list(request.session.keys()):
         del request.session[key]
     request.session.flush()
     return render(request, constants.LOGIN_TEMPLATE, {constants.ERROR_MESSAGE: error_message})
@@ -136,7 +137,7 @@ def create_user(request):
     # pass the user's details taken from auth AD to create user in local AD
         ad.create_user(db_service.get_local_ad(), user_detail)
     except Exception as e:
-            return list_sol_users(request, error_message=e.message)
+            return list_sol_users(request, error_message=str(e))
     # add that created user in SOL database
     db_service.create_user(user_detail)
 
@@ -220,6 +221,7 @@ def active_directory_configuration(request):
                                   constants.LOCAL_AD_DOMAIN: request.POST[constants.LOCAL_AD_DOMAIN],
                                   constants.LOCAL_AD_USERNAME: request.POST[constants.LOCAL_AD_USERNAME],
                                   constants.LOCAL_AD_PASSWORD: request.POST[constants.LOCAL_AD_PASSWORD]}
+
         db_service.store_local_ad(local_active_directory)
         # store auth AD details in SOL DB
         auth_active_directory = {constants.AUTH_AD_HOST: request.POST[constants.AUTH_AD_HOST],
@@ -326,26 +328,33 @@ def generate_openvpn_certificate(request, username=None):
 def hypervisor_management(request, message=None, error_message=None):
     if 'hypervisor_id' in request.POST:
         hypervisor_id = request.POST['hypervisor_id']
-        sol_user_id = db_service.get_sol_user_id(hypervisor_id=hypervisor_id)
         db_hypervisor = db_service.get_hypervisor(id=hypervisor_id)
-        hypervisor = {constants.TYPE: db_hypervisor.type, constants.PROTOCOL: db_hypervisor.protocol,
-                      constants.HOST: db_hypervisor.host, constants.PORT: db_hypervisor.port,
-                      constants.DOMAIN: request.POST[constants.DOMAIN],
-                      constants.USERNAME: request.POST[constants.USERNAME],
-                      constants.PASSWORD: request.POST[constants.PASSWORD]}
+        hypervisor_type= db_hypervisor.type
+        if hypervisor_type =="openstack":
+            hypervisor = {constants.TYPE: db_hypervisor.type, constants.PROTOCOL: db_hypervisor.protocol,
+                          constants.HOST: db_hypervisor.host, constants.PORT: db_hypervisor.port,
+                          constants.DOMAIN: request.POST[constants.DOMAIN],
+                          constants.USERNAME: request.POST[constants.USERNAME],
+                          constants.PASSWORD: request.POST[constants.PASSWORD]}
+        else:
+            hypervisor = {constants.TYPE: db_hypervisor.type, constants.PROTOCOL: db_hypervisor.protocol,
+                          constants.HOST: db_hypervisor.host, constants.PORT: db_hypervisor.port}
+        if hypervisor[constants.TYPE] == "openstack":
+            sol_user_id = db_service.get_sol_user_id(hypervisor_id=hypervisor_id)
         try:
-            adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
-            adapter.generate_admin_auth()
-            adapter.delete_user(sol_user_id)
+            if hypervisor[constants.TYPE] == "openstack":
+                adapter = factory.get_adapter(hypervisor[constants.TYPE], hypervisor)
+                adapter.generate_admin_auth()
+                adapter.delete_user(sol_user_id)
             db_service.delete_hypervisor(hypervisor_id)
             message = "Hypervisor removed successfully."
         except Exception as e:
             error_message = e.message
 
+
     return render(request, constants.HYPERVISORS_TEMPLATE, {'hypervisors': db_service.load_hypervisors(),
                                                             constants.MESSAGE: message,
                                                             constants.ERROR_MESSAGE: error_message})
-
 
 def create_hypervisor(request):
     if request.method == constants.GET:
@@ -355,28 +364,34 @@ def create_hypervisor(request):
     protocol = request.POST['protocol']
     host = request.POST['host']
     port = request.POST['port']
-    domain = request.POST['domain']
-    username = request.POST['username']
-    password = request.POST['password']
+    if hypervisor_type == "openstack":
+        domain = request.POST['domain']
+        username = request.POST['username']
+        password = request.POST['password']
 
-    adapter = factory.get_adapter(hypervisor_type, {constants.PROTOCOL: protocol, constants.HOST: host,
+    if hypervisor_type == "openstack":
+        adapter = factory.get_adapter(hypervisor_type, {constants.PROTOCOL: protocol, constants.HOST: host,
                                                     constants.PORT: port, constants.DOMAIN: domain,
                                                     'username': username, 'password': password})
-    user_detail = adapter.create_sol_user()
 
-    if constants.ERROR_MESSAGE in user_detail:
-        return hypervisor_management(request, error_message=user_detail[constants.ERROR_MESSAGE])
+        user_detail = adapter.create_sol_user()
 
-    hypervisor = db_service.create_hypervisor(hypervisor_type, protocol, host, port)
-    user = db_service.get_user(constants.HYPERVISOR_SOLUSER_NAME)
-    if not user:
-        user = db_service.create_user({constants.USERNAME: constants.HYPERVISOR_SOLUSER_NAME,
-                                       constants.USER_EMAIL: constants.HYPERVISOR_SOLUSER_EMAIL,
-                                       constants.USER_FULL_NAME: constants.HYPERVISOR_SOLUSER_NAME})
-    db_service.save_user_credentials(user.username, hypervisor.host, domain, constants.HYPERVISOR_SOLUSER_NAME,
-                                     user_detail['user_password'])
-    db_service.update_hypervisor_user_id(user.username, hypervisor.host, user_detail['user_id'])
+        if constants.ERROR_MESSAGE in user_detail:
+            return hypervisor_management(request, error_message=user_detail[constants.ERROR_MESSAGE])
 
+        hypervisor = db_service.create_hypervisor(hypervisor_type, protocol, host, port)
+        user = db_service.get_user(constants.HYPERVISOR_SOLUSER_NAME)
+        if not user:
+            user = db_service.create_user({constants.USERNAME: constants.HYPERVISOR_SOLUSER_NAME,
+                                           constants.USER_EMAIL: constants.HYPERVISOR_SOLUSER_EMAIL,
+                                           constants.USER_FULL_NAME: constants.HYPERVISOR_SOLUSER_NAME})
+        db_service.save_user_credentials(user.username, hypervisor.host, domain, constants.HYPERVISOR_SOLUSER_NAME,
+                                         user_detail['user_password'])
+        db_service.update_hypervisor_user_id(user.username, hypervisor.host, user_detail['user_id'])
+
+
+    elif hypervisor_type == "vCenter":
+        hypervisor = db_service.create_hypervisor(hypervisor_type, protocol, host, port)
     return hypervisor_management(request, message='Hypervisor added successfully.')
 
 
@@ -397,7 +412,20 @@ def assign_hypervisor(request, hypervisor_id=None, username=None):
                                                                  'hypervisor_users': hypervisor_users,
                                                                  constants.MESSAGE: message,
                                                                  constants.ERROR_MESSAGE: error_message})
-
+def load_hosts(request, host=None):
+    if request.method == "POST":
+        print("########################################################################################")
+        name = request.POST.get("domain")
+        host = request.POST.get("host")
+        user_name = request.POST.get("username")
+        password = request.POST.get("password")
+        si=service_instance = connect.ConnectNoSSL(host=host,
+                                                    user=user_name,
+                                                    pwd=password,
+                                                    port="443")
+        print(si.content)
+        print("########################################################################################")
+    return render(request, "vcenter_hosts.html")
 
 def load_projects(request, host=None):
     if request.method == constants.GET:

@@ -2,7 +2,7 @@ import datetime as datetime_obj
 from datetime import datetime
 from db import db_service
 from tabulate import tabulate
-import sol_email
+import core.sol_email as sol_email
 from lib import factory
 import logging
 from core import constants

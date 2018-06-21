@@ -76,18 +76,25 @@ def retrieve_user_details(active_directory, username):
         pattern = r'^\s*(\[\'\s*)?|(\s*\'\])?\s*$'
         while 1:
             result_type, result_data = conn.result(ldap_result_id, 0)
+            #print ("RESULY DATA################################################################ "+str(result_data))
             if not result_data or constants.USER_EMAIL in user_detail:
                 break
             else:
                 if result_type == ldap.RES_SEARCH_ENTRY:
+                    #print("GOT resulttype==============================================="+str(result_type))
+                    #print("ldap search entry%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%"+str(ldap.RES_SEARCH_ENTRY))
                     result_set.append(result_data)
                     for result in result_data:
                         temp_dict = result[1]
-                        sam_account_name = regex.sub(pattern, '', str(temp_dict['sAMAccountName']))
+                        #sam_account_name = regex.sub(pattern, '', str(temp_dict['sAMAccountName']))
+                        sam_account_name = temp_dict['sAMAccountName'][0].decode()
+                        #print(sam_account_name)
                         if sam_account_name == username:
+                            print("USERANAME AND FOUND************************************************")
                             user_detail[constants.USER_FULL_NAME] = regex.sub(pattern, '', str(temp_dict['name']))
+                            print(str(user_detail[constants.USER_FULL_NAME]))
                             user_detail[constants.USER_EMAIL] = regex.sub(pattern, '', str(temp_dict['mail']))
-
+        print("USER DEATaIL&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"+str(user_detail))
         if not user_detail:
             raise ActiveDirectoryException(message="User not found, please check user id.")
 
@@ -95,11 +102,11 @@ def retrieve_user_details(active_directory, username):
         return user_detail
     except ldap.SERVER_DOWN:
         raise ActiveDirectoryException(message="Unable to connect to AD, Please try again.")
-    except ldap.LDAPError, e:
-        if isinstance(e.message, dict) and 'desc' in e.message:
-            raise ActiveDirectoryException(message="Other LDAP error: " + e.message['desc'])
-        else:
-            raise ActiveDirectoryException(message="Other LDAP error: " + e)
+    except ldap.LDAPError as e:
+        #if isinstance(e.message, dict) and 'desc' in e.message:
+        #    raise ActiveDirectoryException(message="Other LDAP error: " + e.message['desc'])
+        #else:
+            raise ActiveDirectoryException(message="Other LDAP error: " + str(e))
     finally:
         if conn is not None:
             conn.unbind_s()
@@ -126,9 +133,10 @@ def create_user(active_directory, user_detail):
         execute_script_winrm(active_directory, 'Enable-ADAccount -Identity "' + user_name + '"')
 
     except Exception as e:
-        if 'The specified account already exists' not in e.message:
+        print("---------------------------------",str(e))
+        if 'The specified account already exists' not in str(e):
             execute_script_winrm(active_directory, 'Remove-ADUser -Identity "' + user_name + '" -Confirm:$false')
-        raise e
+        raise Exception(e)
 
 
 def change_status(active_directory, username):
@@ -200,15 +208,18 @@ def ldap_connection(host, port, domain, username, password):
     try:
         domain_user = domain + "\\" + username  # create user with domain\username
         ldap_conn = 'ldap://' + host + ':' + port  # ldap connection string
+        ldap_conn = ldap_conn.replace(" ", "")
         connection = ldap.initialize(ldap_conn)  # connection object of ldap
         connection.protocol_version = 3  # specify the version
         connection.set_option(ldap.OPT_REFERRALS, 0)
         connection.simple_bind_s(domain_user, password)  # connect to ldap
+        print(connection)
         return connection
     except Exception as e:
-        if 'desc' in e.message:
-            e.message = e.message['desc'] + "(" + host + ")"  # modify error message and add host details.
-        raise e
+        #if 'desc' in e.message:
+            #e = e.message['desc'] + "(" + host + ")"  # modify error message and add host details.
+        e = str(e) + "(" + host + ")"  # modify error message and add host details.
+        raise Exception(e)
 
 
 def change_password(active_directory, username, old_password, new_password):

@@ -1,7 +1,6 @@
 from django.db import models
 from django.utils import timezone
 
-
 class ConfigMaster(models.Model):
     """
         This model can be used to store any type of key-value pair data.

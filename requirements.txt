@@ -1,6 +1,6 @@
 django==1.11.8
 django-bootstrap3
-MySQL-python
+PyMySQL
 django-bootstrap
 requests
 python-ldap
