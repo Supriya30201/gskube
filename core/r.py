@@ -15,3 +15,8 @@ print(connection)
 
 a=[b'GSC-30185']
 print(a[0].decode())
+
+a=b'Rahul Mishra'.decode()
+print(a)
+
+base64encode

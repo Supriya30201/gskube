@@ -91,9 +91,13 @@ def retrieve_user_details(active_directory, username):
                         #print(sam_account_name)
                         if sam_account_name == username:
                             print("USERANAME AND FOUND************************************************")
-                            user_detail[constants.USER_FULL_NAME] = regex.sub(pattern, '', str(temp_dict['name']))
-                            print(str(user_detail[constants.USER_FULL_NAME]))
-                            user_detail[constants.USER_EMAIL] = regex.sub(pattern, '', str(temp_dict['mail']))
+                            #user_detail[constants.USER_FULL_NAME] = regex.sub(pattern, '', str(temp_dict['name']))
+                            print(temp_dict['name'][0].decode())
+                            user_detail[constants.USER_FULL_NAME] =temp_dict['name'][0].decode()
+                            print(temp_dict['mail'][0].decode())
+                            user_detail[constants.USER_EMAIL] = temp_dict['mail'][0].decode()
+                            #user_detail[constants.USER_EMAIL] = regex.sub(pattern, '', str(temp_dict['mail']))
+
         print("USER DEATaIL&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&&"+str(user_detail))
         if not user_detail:
             raise ActiveDirectoryException(message="User not found, please check user id.")
@@ -110,8 +114,6 @@ def retrieve_user_details(active_directory, username):
     finally:
         if conn is not None:
             conn.unbind_s()
-
-
 
 
 def create_user(active_directory, user_detail):
@@ -133,7 +135,7 @@ def create_user(active_directory, user_detail):
         execute_script_winrm(active_directory, 'Enable-ADAccount -Identity "' + user_name + '"')
 
     except Exception as e:
-        print("---------------------------------",str(e))
+        print("---------------------------------", str(e))
         if 'The specified account already exists' not in str(e):
             execute_script_winrm(active_directory, 'Remove-ADUser -Identity "' + user_name + '" -Confirm:$false')
         raise Exception(e)
@@ -250,8 +252,11 @@ def execute_script_winrm(active_directory, script):
         s = winrm.Session(active_directory[constants.LOCAL_AD_HOST],
                           auth=(active_directory[constants.LOCAL_AD_USERNAME],
                                 services.decode(active_directory[constants.LOCAL_AD_PASSWORD])))
+        print("-----------------------------")
+        print(script)
+        print(type(script))
+        print(s)
         output = s.run_ps(script)
-
         if output.status_code != 0:
             raise ActiveDirectoryException(message=output.std_err)
         return output.std_out
